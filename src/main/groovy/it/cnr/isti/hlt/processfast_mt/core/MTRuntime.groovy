@@ -36,7 +36,7 @@ import it.cnr.isti.hlt.processfast_mt.data.PDResultsStorageManagerProvider
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsRuntime implements ProcessfastRuntime {
+class MTRuntime implements ProcessfastRuntime {
 
     /**
      * The number of threads reserved for data parallel operations. Default value is 5.
@@ -64,10 +64,10 @@ class GParsRuntime implements ProcessfastRuntime {
     /**
      * The runtime component that orchestrate and monitor the running application.
      */
-    final GParsProgramOrchestrator orchestrator
+    final MTProgramOrchestrator orchestrator
 
-    GParsRuntime() {
-        orchestrator = new GParsProgramOrchestrator(this)
+    MTRuntime() {
+        orchestrator = new MTProgramOrchestrator(this)
         logManager = new SLF4JLogManager()
     }
 
@@ -109,7 +109,7 @@ class GParsRuntime implements ProcessfastRuntime {
 
     @Override
     TaskSet createTaskSet() {
-        return new GParsTaskSet()
+        return new MTTaskSet()
     }
 
 }

@@ -27,33 +27,33 @@ import it.cnr.isti.hlt.processfast.connector.ConnectorMessage
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsLoadBalancingVirtualConnectorReader {
+class MTLoadBalancingVirtualConnectorReader {
 
     /**
      * The source connector.
      */
-    final GParsLoadBalancingQueueConnector sourceConnector
+    final MTLoadBalancingQueueConnector sourceConnector
 
     /**
      * The internal connector ensuring broadcasting behaviour.
      */
-    final GParsBroadcastQueueConnector broadcastConnector
+    final MTBroadcastQueueConnector broadcastConnector
 
     /**
      * The name of this virtual connector.
      */
     String virtualConnectorName
 
-    GParsLoadBalancingVirtualConnectorReader(GParsLoadBalancingQueueConnector sourceConnector) {
+    MTLoadBalancingVirtualConnectorReader(MTLoadBalancingQueueConnector sourceConnector) {
         if (sourceConnector == null)
             throw new NullPointerException("The source connector is 'null'")
         this.sourceConnector = sourceConnector
-        broadcastConnector = new GParsBroadcastQueueConnector()
+        broadcastConnector = new MTBroadcastQueueConnector()
         this.virtualConnectorName = "${System.currentTimeMillis()}-${new Random().nextInt(10000)}"
     }
 
     void run(PGroup tasksGroup) {
-        GParsTaskBroadcastQueueConnector connector = new GParsTaskBroadcastQueueConnector(broadcastConnector, virtualConnectorName, false, true)
+        MTTaskBroadcastQueueConnector connector = new MTTaskBroadcastQueueConnector(broadcastConnector, virtualConnectorName, false, true)
         tasksGroup.operator([], []) {
             while (true) {
                 ConnectorMessage msg = sourceConnector.getValue()

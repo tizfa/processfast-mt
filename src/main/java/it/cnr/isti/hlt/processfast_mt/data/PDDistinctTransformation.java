@@ -2,7 +2,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  */
 public class PDDistinctTransformation<T extends Serializable> implements PDTransformation {
 
-    public PDDistinctTransformation(GParsTaskContext tc, int maxBufferSize) {
+    public PDDistinctTransformation(MTTaskContext tc, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         this.tc = tc;
         this.maxBufferSize = maxBufferSize;
@@ -58,6 +58,6 @@ public class PDDistinctTransformation<T extends Serializable> implements PDTrans
         return true;
     }
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final int maxBufferSize;
 }

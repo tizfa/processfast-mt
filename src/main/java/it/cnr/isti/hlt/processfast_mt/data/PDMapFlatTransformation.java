@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PDFunction;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  */
 public class PDMapFlatTransformation<T, Out> implements PDTransformation {
 
-    public PDMapFlatTransformation(GParsTaskContext tc, PDFunction<T, Iterator<Out>> code, int maxBufferSize) {
+    public PDMapFlatTransformation(MTTaskContext tc, PDFunction<T, Iterator<Out>> code, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (code == null) throw new NullPointerException("The programmer's code is 'null'");
         this.tc = tc;
@@ -71,6 +71,6 @@ public class PDMapFlatTransformation<T, Out> implements PDTransformation {
     }
 
     private final PDFunction<T, Iterator<Out>> code;
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final int maxBufferSize;
 }

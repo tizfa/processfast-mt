@@ -21,12 +21,12 @@ package it.cnr.isti.hlt.processfast_mt.core
 import it.cnr.isti.hlt.processfast.connector.ConnectorReader
 import it.cnr.isti.hlt.processfast.connector.ConnectorWriter
 import it.cnr.isti.hlt.processfast.connector.TaskConnectorManager
-import it.cnr.isti.hlt.processfast_mt.connector.GParsLoadBalancingQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskLoadBalancingQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsBroadcastQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsSingleValueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskBroadcastQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskSingleValueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTBroadcastQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTSingleValueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskBroadcastQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskSingleValueConnector
 
 /**
  * A GPars connector manager to be used by running tasks.
@@ -34,23 +34,23 @@ import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskSingleValueConnector
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsTaskConnectorManager implements TaskConnectorManager {
+class MTTaskConnectorManager implements TaskConnectorManager {
 
     /**
      * The tasks set which is owner of this task.
      */
-    final GParsRunningTasksSet tasksSetOwner
+    final MTRunningTasksSet tasksSetOwner
 
     /**
      * The task wrapped by this connection manager.
      */
-    final GParsRunningTask task
+    final MTRunningTask task
 
 
     private HashMap<String, ConnectorReader> taskConnectorsReader = new HashMap<>()
     private HashMap<String, ConnectorWriter> taskConnectorsWriter = new HashMap<>()
 
-    GParsTaskConnectorManager(GParsRunningTasksSet tasksSet, GParsRunningTask task) {
+    MTTaskConnectorManager(MTRunningTasksSet tasksSet, MTRunningTask task) {
         if (tasksSet == null)
             throw new NullPointerException("The specified tasks set is 'null'")
         if (task == null)
@@ -81,16 +81,16 @@ class GParsTaskConnectorManager implements TaskConnectorManager {
     private void storeConnectorInfo(String connectorName, ConnectorInfo ci, String taskName) {
         boolean readAccess = ci.readAccessList.contains(taskName)
         boolean writeAccess = ci.writeAccessList.contains(taskName)
-        if (ci.connector instanceof GParsBroadcastQueueConnector) {
-            GParsTaskBroadcastQueueConnector bq = new GParsTaskBroadcastQueueConnector(ci.connector, taskName, readAccess, writeAccess)
+        if (ci.connector instanceof MTBroadcastQueueConnector) {
+            MTTaskBroadcastQueueConnector bq = new MTTaskBroadcastQueueConnector(ci.connector, taskName, readAccess, writeAccess)
             taskConnectorsReader.put(connectorName, bq)
             taskConnectorsWriter.put(connectorName, bq)
-        } else if (ci.connector instanceof GParsLoadBalancingQueueConnector) {
-            GParsTaskLoadBalancingQueueConnector lbc = new GParsTaskLoadBalancingQueueConnector(ci.connector)
+        } else if (ci.connector instanceof MTLoadBalancingQueueConnector) {
+            MTTaskLoadBalancingQueueConnector lbc = new MTTaskLoadBalancingQueueConnector(ci.connector)
             taskConnectorsReader.put(connectorName, lbc)
             taskConnectorsWriter.put(connectorName, lbc)
-        } else if (ci.connector instanceof GParsSingleValueConnector) {
-            GParsTaskSingleValueConnector svc = new GParsTaskSingleValueConnector(ci.connector)
+        } else if (ci.connector instanceof MTSingleValueConnector) {
+            MTTaskSingleValueConnector svc = new MTTaskSingleValueConnector(ci.connector)
             taskConnectorsReader.put(connectorName, svc)
             taskConnectorsWriter.put(connectorName, svc)
         } else

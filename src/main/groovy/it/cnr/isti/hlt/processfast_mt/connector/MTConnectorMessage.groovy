@@ -24,7 +24,7 @@ import it.cnr.isti.hlt.processfast.connector.ConnectorMessage
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsConnectorMessage implements ConnectorMessage {
+class MTConnectorMessage implements ConnectorMessage {
 
     final Serializable payload
     final DataflowVariable replyTo
@@ -36,7 +36,7 @@ class GParsConnectorMessage implements ConnectorMessage {
      * @param replyTo If different from 'null', specify the dataflow variable
      * where to reply to sender.
      */
-    GParsConnectorMessage(Serializable payload, DataflowVariable replyTo) {
+    MTConnectorMessage(Serializable payload, DataflowVariable replyTo) {
         if (payload == null)
             throw new NullPointerException("The specified payload is 'null'")
         this.payload = payload

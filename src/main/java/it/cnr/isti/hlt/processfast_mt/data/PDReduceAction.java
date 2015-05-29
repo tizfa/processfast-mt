@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PDFunction2;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 @CompileStatic
 public class PDReduceAction<Out extends Serializable> implements PDAction<Out> {
-    public PDReduceAction(GParsTaskContext tc, PDFunction2<Out, Out, Out> code) {
+    public PDReduceAction(MTTaskContext tc, PDFunction2<Out, Out, Out> code) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (code == null) throw new NullPointerException("The programmer's code is ' null'");
         this.tc = tc;
@@ -46,6 +46,6 @@ public class PDReduceAction<Out extends Serializable> implements PDAction<Out> {
         return true;
     }
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final PDFunction2<Out, Out, Out> code;
 }

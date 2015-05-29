@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PDProcedure;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 @CompileStatic
 public class PDProcessAction<Out extends Serializable> implements PDAction<Void> {
-    public PDProcessAction(GParsTaskContext tc, PDProcedure<Out> func) {
+    public PDProcessAction(MTTaskContext tc, PDProcedure<Out> func) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (func == null) throw new NullPointerException("The func is 'null'");
         this.tc = tc;
@@ -43,6 +43,6 @@ public class PDProcessAction<Out extends Serializable> implements PDAction<Void>
     }
 
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final PDProcedure<Out> func;
 }

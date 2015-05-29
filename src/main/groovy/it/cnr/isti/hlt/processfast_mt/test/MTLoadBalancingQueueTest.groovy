@@ -21,13 +21,13 @@ package it.cnr.isti.hlt.processfast_mt.test
 import groovyx.gpars.dataflow.DataflowBroadcast
 import groovyx.gpars.dataflow.operator.PoisonPill
 import groovyx.gpars.group.DefaultPGroup
-import it.cnr.isti.hlt.processfast_mt.connector.GParsLoadBalancingQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsLoadBalancingQueueTest {
+class MTLoadBalancingQueueTest {
 
     static def main(args) {
         def tasksGroup = new DefaultPGroup(10)
@@ -42,11 +42,11 @@ class GParsLoadBalancingQueueTest {
                 readChannels << dv.createReadChannel()
             }
 
-            GParsLoadBalancingQueueConnector sharedQueue = new GParsLoadBalancingQueueConnector(10)
+            MTLoadBalancingQueueConnector sharedQueue = new MTLoadBalancingQueueConnector(10)
 
             def op1 = operator([rc1], []) {
 //            def op1 = task {
-                GParsTaskLoadBalancingQueueConnector queue = new GParsTaskLoadBalancingQueueConnector(sharedQueue)
+                MTTaskLoadBalancingQueueConnector queue = new MTTaskLoadBalancingQueueConnector(sharedQueue)
                 (1..10).each {
                     //sleep(new Random().nextInt(1000))
                     println("Val write: ${it}")
@@ -66,7 +66,7 @@ class GParsLoadBalancingQueueTest {
             for (int i = 0; i < numConsumers; i++) {
                 def op2 = operator([readChannels[i]], []) {
                     //def op2 = task {
-                    GParsTaskLoadBalancingQueueConnector queue = new GParsTaskLoadBalancingQueueConnector(sharedQueue)
+                    MTTaskLoadBalancingQueueConnector queue = new MTTaskLoadBalancingQueueConnector(sharedQueue)
                     println("Operator start ${i}")
                     while (true) {
                         def msg = queue.getValue()

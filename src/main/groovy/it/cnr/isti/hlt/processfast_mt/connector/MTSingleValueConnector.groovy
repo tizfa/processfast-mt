@@ -32,7 +32,7 @@ import it.cnr.isti.hlt.processfast.exception.ConnectorIllegalOperationException
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsSingleValueConnector extends GParsConnector {
+class MTSingleValueConnector extends MTConnector {
 
     /**
      * The dataflow variable used to implement this specific connector.
@@ -44,7 +44,7 @@ class GParsSingleValueConnector extends GParsConnector {
      */
     synchronized boolean endOfStream = false
 
-    GParsSingleValueConnector() {
+    MTSingleValueConnector() {
         isVirtual = false
         connectorType = ConnectorType.SINGLE_VALUE
     }
@@ -63,7 +63,7 @@ class GParsSingleValueConnector extends GParsConnector {
         }
     }
 
-    synchronized void putValue(GParsConnectorMessage v) {
+    synchronized void putValue(MTConnectorMessage v) {
         if (endOfStream) {
             endOfStream = false
             dataflowVariable = new DataflowVariable()
@@ -88,7 +88,7 @@ class GParsSingleValueConnector extends GParsConnector {
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsTaskSingleValueConnector implements Connector {
+class MTTaskSingleValueConnector implements Connector {
     /**
      * The name of the task.
      */
@@ -97,9 +97,9 @@ class GParsTaskSingleValueConnector implements Connector {
     /**
      * The shared GPars channel used to implement the connector.
      */
-    final GParsSingleValueConnector sharedConnector
+    final MTSingleValueConnector sharedConnector
 
-    GParsTaskSingleValueConnector(GParsSingleValueConnector sharedConnector) {
+    MTTaskSingleValueConnector(MTSingleValueConnector sharedConnector) {
         if (sharedConnector == null)
             throw new NullPointerException("The shared connector is 'null'")
         this.sharedConnector = sharedConnector
@@ -120,7 +120,7 @@ class GParsTaskSingleValueConnector implements Connector {
         if (v == null)
             throw new NullPointerException("The specified value is 'null'")
 
-        sharedConnector.putValue(new GParsConnectorMessage(v, null))
+        sharedConnector.putValue(new MTConnectorMessage(v, null))
     }
 
     @Override

@@ -9,16 +9,16 @@ public class PDCustomizeTransformation implements PDBaseTransformation {
         return false;
     }
 
-    public Procedure1<GParsPartitionableDataset> getCustomizationCode() {
+    public Procedure1<MTPartitionableDataset> getCustomizationCode() {
         return customizationCode;
     }
 
-    public void setCustomizationCode(Procedure1<GParsPartitionableDataset> customizationCode) {
+    public void setCustomizationCode(Procedure1<MTPartitionableDataset> customizationCode) {
         this.customizationCode = customizationCode;
     }
 
     /**
      * The closure customization code. The closure takes the owning partitionable dataset as argument.
      */
-    private Procedure1<GParsPartitionableDataset> customizationCode;
+    private Procedure1<MTPartitionableDataset> customizationCode;
 }

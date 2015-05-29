@@ -23,7 +23,7 @@ import it.cnr.isti.hlt.processfast.core.TaskDataContext
 import it.cnr.isti.hlt.processfast.core.TaskSharedData
 import it.cnr.isti.hlt.processfast.data.ReadableDictionary
 import it.cnr.isti.hlt.processfast.data.StorageManager
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext
 
 /**
  * A task data context to be used in partitionable datasets
@@ -40,7 +40,7 @@ class GParsTaskDataContext implements TaskDataContext {
 
     final StorageManager storageManager
 
-    GParsTaskDataContext(GParsTaskContext tc) {
+    GParsTaskDataContext(MTTaskContext tc) {
         if (tc == null)
             throw new NullPointerException("The task context is 'null'")
         this.tasksSetDataDictionary = tc.tasksSetDataDictionary

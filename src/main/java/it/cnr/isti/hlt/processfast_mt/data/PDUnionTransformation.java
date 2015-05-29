@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  */
 @CompileStatic
 public class PDUnionTransformation<T extends Serializable> implements PDTransformation {
-    public PDUnionTransformation(GParsTaskContext tc, GParsPartitionableDataset<T> toMerge, int maxBufferSize) {
+    public PDUnionTransformation(MTTaskContext tc, MTPartitionableDataset<T> toMerge, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (toMerge == null) throw new NullPointerException("The partitionable dataset to intersect is 'null'");
         this.tc = tc;
@@ -73,11 +73,11 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
         return true;
     }
 
-    public final GParsTaskContext getTc() {
+    public final MTTaskContext getTc() {
         return tc;
     }
 
-    public final GParsPartitionableDataset<T> getToMerge() {
+    public final MTPartitionableDataset<T> getToMerge() {
         return toMerge;
     }
 
@@ -85,7 +85,7 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
         return maxBufferSize;
     }
 
-    private final GParsTaskContext tc;
-    private final GParsPartitionableDataset<T> toMerge;
+    private final MTTaskContext tc;
+    private final MTPartitionableDataset<T> toMerge;
     private final int maxBufferSize;
 }

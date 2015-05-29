@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * A Gpars PD action for {@link GParsPartitionableDataset#count()} method.
+ * A Gpars PD action for {@link MTPartitionableDataset#count()} method.
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0

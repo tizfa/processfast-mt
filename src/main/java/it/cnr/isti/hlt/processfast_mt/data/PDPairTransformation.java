@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.*;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public class PDPairTransformation<T extends Serializable> implements PDTransformation {
-    public PDPairTransformation(GParsTaskContext tc, GParsPartitionableDataset<T> toMerge, int maxBufferSize) {
+    public PDPairTransformation(MTTaskContext tc, MTPartitionableDataset<T> toMerge, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (toMerge == null) throw new NullPointerException("The partitionable dataset to intersect is 'null'");
         this.tc = tc;
@@ -76,11 +76,11 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
         return true;
     }
 
-    public final GParsTaskContext getTc() {
+    public final MTTaskContext getTc() {
         return tc;
     }
 
-    public final GParsPartitionableDataset<T> getToPair() {
+    public final MTPartitionableDataset<T> getToPair() {
         return toPair;
     }
 
@@ -88,8 +88,8 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
         return maxBufferSize;
     }
 
-    private final GParsTaskContext tc;
-    private final GParsPartitionableDataset<T> toPair;
+    private final MTTaskContext tc;
+    private final MTPartitionableDataset<T> toPair;
     private final int maxBufferSize;
     private long toPairSize;
 }

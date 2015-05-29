@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public class PDCartesianTransformation<T extends Serializable> implements PDTransformation {
-    public PDCartesianTransformation(GParsTaskContext tc, GParsPartitionableDataset<T> toIntersect, int maxBufferSize) {
+    public PDCartesianTransformation(MTTaskContext tc, MTPartitionableDataset<T> toIntersect, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (toIntersect == null)
             throw new NullPointerException("The partitionable dataset to use in cartesian product is 'null'");
@@ -45,7 +45,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
             dest.put("storage", storage);
             //toIntersectCache = (GParsPartitionableDataset) toIntersect.cache(CacheType.ON_DISK)
-            toIntersectCache = (GParsPartitionableDataset) toIntersect;
+            toIntersectCache = (MTPartitionableDataset) toIntersect;
             toIntersectSize = toIntersectCache.count();
         }
 
@@ -56,7 +56,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         }
     }
 
-    private void addCartesianItems(PDResultsCollectionStorage storage, final Object item, GParsPartitionableDataset<T> pd, long pdSize, int maxBufferSize) {
+    private void addCartesianItems(PDResultsCollectionStorage storage, final Object item, MTPartitionableDataset<T> pd, long pdSize, int maxBufferSize) {
         long curIdx = 0;
         final List l = new ArrayList();
         while (true) {
@@ -88,19 +88,19 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         return true;
     }
 
-    public final GParsTaskContext getTc() {
+    public final MTTaskContext getTc() {
         return tc;
     }
 
-    public final GParsPartitionableDataset<T> getToIntersect() {
+    public final MTPartitionableDataset<T> getToIntersect() {
         return toIntersect;
     }
 
-    public GParsPartitionableDataset<T> getToIntersectCache() {
+    public MTPartitionableDataset<T> getToIntersectCache() {
         return toIntersectCache;
     }
 
-    public void setToIntersectCache(GParsPartitionableDataset<T> toIntersectCache) {
+    public void setToIntersectCache(MTPartitionableDataset<T> toIntersectCache) {
         this.toIntersectCache = toIntersectCache;
     }
 
@@ -116,9 +116,9 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         return maxBufferSize;
     }
 
-    private final GParsTaskContext tc;
-    private final GParsPartitionableDataset<T> toIntersect;
-    private GParsPartitionableDataset<T> toIntersectCache;
+    private final MTTaskContext tc;
+    private final MTPartitionableDataset<T> toIntersect;
+    private MTPartitionableDataset<T> toIntersectCache;
     private long toIntersectSize = 0;
     private final int maxBufferSize;
 }

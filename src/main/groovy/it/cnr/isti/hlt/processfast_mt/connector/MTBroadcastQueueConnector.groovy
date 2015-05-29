@@ -34,7 +34,7 @@ import it.cnr.isti.hlt.processfast.exception.ConnectorIllegalOperationException
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsBroadcastQueueConnector extends GParsConnector {
+class MTBroadcastQueueConnector extends MTConnector {
 
     /**
      * The constant used to signal the end of the stream.
@@ -63,7 +63,7 @@ class GParsBroadcastQueueConnector extends GParsConnector {
      */
     private int maxSize
 
-    GParsBroadcastQueueConnector(int maxSize) {
+    MTBroadcastQueueConnector(int maxSize) {
         if (maxSize < 1)
             throw new IllegalArgumentException("The maximum size is less than 1")
         isVirtual = false
@@ -104,7 +104,7 @@ class GParsBroadcastQueueConnector extends GParsConnector {
         return msg
     }
 
-    synchronized void putValue(GParsConnectorMessage v) {
+    synchronized void putValue(MTConnectorMessage v) {
         if (endOfStream) {
             endOfStream = false
             boolean toSleep = true
@@ -139,7 +139,7 @@ class GParsBroadcastQueueConnector extends GParsConnector {
     }
 
 
-    synchronized void registerSubscriber(GParsTaskBroadcastQueueConnector connector) {
+    synchronized void registerSubscriber(MTTaskBroadcastQueueConnector connector) {
         if (!registeredSubscribers.containsKey(connector.taskName)) {
             registeredSubscribers.put(connector.taskName, dataflowBroadcast.createReadChannel())
             endedStream.put(connector.taskName, false)
@@ -154,19 +154,19 @@ class GParsBroadcastQueueConnector extends GParsConnector {
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsTaskBroadcastQueueConnector implements Connector {
+class MTTaskBroadcastQueueConnector implements Connector {
 
     /**
      * The name of the task.
      */
     final String taskName
 
-    final GParsBroadcastQueueConnector sharedConnector
+    final MTBroadcastQueueConnector sharedConnector
     final boolean reader
     final boolean writer
 
 
-    GParsTaskBroadcastQueueConnector(GParsBroadcastQueueConnector sharedConnector, String taskName, boolean isReader, boolean isWriter) {
+    MTTaskBroadcastQueueConnector(MTBroadcastQueueConnector sharedConnector, String taskName, boolean isReader, boolean isWriter) {
         if (sharedConnector == null)
             throw new NullPointerException("The shared connector is 'null'")
         if (taskName == null || taskName.empty)
@@ -199,7 +199,7 @@ class GParsTaskBroadcastQueueConnector implements Connector {
         if (v == null)
             throw new NullPointerException("The specified value is 'null'")
 
-        sharedConnector.putValue(new GParsConnectorMessage(v, null))
+        sharedConnector.putValue(new MTConnectorMessage(v, null))
     }
 
     @Override
@@ -209,9 +209,9 @@ class GParsTaskBroadcastQueueConnector implements Connector {
         if (v == null)
             throw new NullPointerException("The specified value is 'null'")
 
-        def msg = new GParsConnectorMessage(v, new DataflowVariable())
+        def msg = new MTConnectorMessage(v, new DataflowVariable())
         sharedConnector.putValue(msg)
-        return GparsDataflowVariableValuePromise(msg.replyTo)
+        return MTDataflowVariableValuePromise(msg.replyTo)
     }
 
     @Override

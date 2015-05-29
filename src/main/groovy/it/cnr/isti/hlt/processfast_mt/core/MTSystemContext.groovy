@@ -16,32 +16,39 @@
  * *******************
  */
 
-package it.cnr.isti.hlt.processfast_mt.connector
+package it.cnr.isti.hlt.processfast_mt.core
 
-import groovyx.gpars.dataflow.DataflowVariable
-import it.cnr.isti.hlt.processfast.connector.ValuePromise
+import groovy.transform.CompileStatic
+import it.cnr.isti.hlt.processfast.core.LogManager
+import it.cnr.isti.hlt.processfast.core.SystemContext
+import it.cnr.isti.hlt.processfast.data.StorageManager
 
 /**
- * A GPars value promise.
- *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
- * @since 1.0.0
  */
-class GparsDataflowVariableValuePromise implements ValuePromise<Serializable> {
+@CompileStatic
+class MTSystemContext implements SystemContext {
 
     /**
-     * The channel used to retrieve the value.
+     * The GPars runtime to use.
      */
-    final DataflowVariable channelValue
+    final MTRuntime runtime
 
-    GparsDataflowVariableValuePromise(DataflowVariable channelValue) {
-        if (channelValue == null)
-            throw new NullPointerException("The specified dataflow variable is 'null'")
-        this.channelValue = channelValue
+
+    MTSystemContext(MTRuntime runtime) {
+        if (runtime == null)
+            throw new NullPointerException("The GPars runtime is 'null'")
+
+        this.runtime = runtime
     }
 
     @Override
-    Serializable get() {
-        return channelValue.get()
+    LogManager getLogManager() {
+        return runtime.orchestrator.internalLogManager
+    }
+
+    @Override
+    StorageManager getStorageManager() {
+        return runtime.storageManager
     }
 }

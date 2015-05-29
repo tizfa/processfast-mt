@@ -23,7 +23,7 @@ package it.cnr.isti.hlt.processfast_mt.connector
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsBarrier {
+class MTBarrier {
 
     /**
      * The barrier name.
@@ -35,7 +35,7 @@ class GParsBarrier {
     int currentWaiting = 0
 
 
-    GParsBarrier(String name) {
+    MTBarrier(String name) {
         if (name == null || name.empty)
             throw new IllegalArgumentException("The specified name is 'null' or empty")
         this.@name = name

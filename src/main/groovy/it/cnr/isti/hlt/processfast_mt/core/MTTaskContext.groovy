@@ -28,9 +28,9 @@ import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset
 import it.cnr.isti.hlt.processfast.utils.Pair
-import it.cnr.isti.hlt.processfast_mt.connector.GParsBarrier
-import it.cnr.isti.hlt.processfast_mt.data.GParsPairPartitionableDataset
-import it.cnr.isti.hlt.processfast_mt.data.GParsPartitionableDataset
+import it.cnr.isti.hlt.processfast_mt.connector.MTBarrier
+import it.cnr.isti.hlt.processfast_mt.data.MTPairPartitionableDataset
+import it.cnr.isti.hlt.processfast_mt.data.MTPartitionableDataset
 
 /**
  * A GPars task context.
@@ -39,22 +39,22 @@ import it.cnr.isti.hlt.processfast_mt.data.GParsPartitionableDataset
  * @since 1.0.0
  */
 @CompileStatic
-class GParsTaskContext extends GParsSystemContext implements TaskContext {
+class MTTaskContext extends MTSystemContext implements TaskContext {
 
     /**
      * The tasks set containing this task.
      */
-    final GParsRunningTasksSet runningTasksSet
+    final MTRunningTasksSet runningTasksSet
 
     /**
      * The task wrapped by this context.
      */
-    final GParsRunningTask runningTask
+    final MTRunningTask runningTask
 
 
-    private final GParsTaskConnectorManager cm
+    private final MTTaskConnectorManager cm
 
-    GParsTaskContext(GParsRuntime runtime, GParsRunningTasksSet tasksSet, GParsRunningTask task) {
+    MTTaskContext(MTRuntime runtime, MTRunningTasksSet tasksSet, MTRunningTask task) {
         super(runtime)
 
         if (tasksSet == null)
@@ -63,7 +63,7 @@ class GParsTaskContext extends GParsSystemContext implements TaskContext {
             throw new NullPointerException("The specified task is 'null'")
         this.runningTasksSet = tasksSet
         this.runningTask = task
-        this.cm = new GParsTaskConnectorManager(tasksSet, task)
+        this.cm = new MTTaskConnectorManager(tasksSet, task)
     }
 
     @Override
@@ -100,7 +100,7 @@ class GParsTaskContext extends GParsSystemContext implements TaskContext {
     void barrier(String barrierName) {
         if (!runningTask.barriersDeclared.contains(barrierName))
             throw new IllegalArgumentException("The task ${taskName} has not declared access to barrier <${barrierName}>!")
-        GParsBarrier b = runningTasksSet.barriers.get(barrierName)
+        MTBarrier b = runningTasksSet.barriers.get(barrierName)
         if (b == null) {
             String realBarrier = runningTasksSet.virtualBarriers.get(barrierName)
             if (realBarrier == null)
@@ -116,12 +116,12 @@ class GParsTaskContext extends GParsSystemContext implements TaskContext {
 
     @Override
     def <T extends Serializable> PartitionableDataset<T> createPartitionableDataset(ImmutableDataSourceIteratorProvider<T> dataSource) {
-        return new GParsPartitionableDataset<T>(this, dataSource)
+        return new MTPartitionableDataset<T>(this, dataSource)
     }
 
     @Override
     def <K extends Serializable, V extends Serializable> PairPartitionableDataset<K, V> createPairPartitionableDataset(ImmutableDataSourceIteratorProvider<Pair<K, V>> dataSource) {
-        return new GParsPairPartitionableDataset<K, V>(this, dataSource)
+        return new MTPairPartitionableDataset<K, V>(this, dataSource)
     }
 
     @Override

@@ -31,7 +31,7 @@ import it.cnr.isti.hlt.processfast.utils.Procedure1
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsTaskSet implements TaskSet {
+class MTTaskSet implements TaskSet {
 
     /**
      * The set of declared tasks.
@@ -106,7 +106,7 @@ class GParsTaskSet implements TaskSet {
     TaskDescriptor task(Task task) {
         if (task == null)
             throw new NullPointerException("The specified task is 'null'")
-        def td = new GParsTaskDescriptor(task)
+        def td = new MTTaskDescriptor(task)
         tasksDeclared << td
         return td
     }
@@ -125,7 +125,7 @@ class GParsTaskSet implements TaskSet {
         if (tasksSet == null)
             throw new NullPointerException("The specified tasks set is 'null'")
 
-        def st = new GParsTaskSetDescriptor(tasksSet)
+        def st = new MTTaskSetDescriptor(tasksSet)
         tasksDeclared << st
         return st
     }

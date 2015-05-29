@@ -26,7 +26,7 @@ import it.cnr.isti.hlt.processfast.connector.ConnectorType
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsConnector {
+class MTConnector {
 
     /**
      * The name of the connector (which is unique inside the owning tasks set).
@@ -49,7 +49,7 @@ class GParsConnector {
         if (this.is(o)) return true
         if (getClass() != o.class) return false
 
-        GParsConnector that = (GParsConnector) o
+        MTConnector that = (MTConnector) o
 
         if (connectorName != that.connectorName) return false
 

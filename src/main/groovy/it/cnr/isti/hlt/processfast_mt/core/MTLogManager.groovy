@@ -21,21 +21,21 @@ package it.cnr.isti.hlt.processfast_mt.core
 import it.cnr.isti.hlt.processfast.core.LogLevel
 import it.cnr.isti.hlt.processfast.core.LogManager
 import it.cnr.isti.hlt.processfast.core.Logger
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsLogManager implements LogManager {
+class MTLogManager implements LogManager {
 
-    final GParsProgramOrchestrator orchestrator
+    final MTProgramOrchestrator orchestrator
 
     /**
      * The set of declared loggers.
      */
     private def loggers = [:]
 
-    GParsLogManager(GParsProgramOrchestrator orchestrator) {
+    MTLogManager(MTProgramOrchestrator orchestrator) {
         if (orchestrator == null)
             throw new NullPointerException("The orchestrator is 'null'")
         this.orchestrator = orchestrator
@@ -48,7 +48,7 @@ class GParsLogManager implements LogManager {
         if (loggers.containsKey(loggerName))
             return loggers.get(loggerName)
 
-        loggers.put(loggerName, new GParsLogger(this, loggerName))
+        loggers.put(loggerName, new MTLogger(this, loggerName))
 
         return loggers.get(loggerName)
     }
@@ -65,19 +65,19 @@ class GParsLogManager implements LogManager {
      * Stop processing data and terminate the logger processor.
      */
     void stopProcessing() {
-        new GParsTaskLoadBalancingQueueConnector(orchestrator.logMessagesQueue).signalEndOfStream()
+        new MTTaskLoadBalancingQueueConnector(orchestrator.logMessagesQueue).signalEndOfStream()
     }
 }
 
 
-class GParsLogger implements Logger {
+class MTLogger implements Logger {
 
-    final GParsLogManager logManager
+    final MTLogManager logManager
     final String loggerName
-    private final GParsTaskLoadBalancingQueueConnector connector
+    private final MTTaskLoadBalancingQueueConnector connector
     private LogLevel loggerLevel = LogLevel.INFO
 
-    GParsLogger(GParsLogManager logManager, String loggerName) {
+    MTLogger(MTLogManager logManager, String loggerName) {
         if (logManager == null)
             throw new NullPointerException("The log manager is 'null'")
         if (loggerName == null || loggerName.empty)
@@ -85,7 +85,7 @@ class GParsLogger implements Logger {
         this.logManager = logManager
         this.loggerName = loggerName
 
-        connector = new GParsTaskLoadBalancingQueueConnector(logManager.orchestrator.logMessagesQueue)
+        connector = new MTTaskLoadBalancingQueueConnector(logManager.orchestrator.logMessagesQueue)
     }
 
     @Override

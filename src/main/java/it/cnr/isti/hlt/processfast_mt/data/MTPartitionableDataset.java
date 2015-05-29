@@ -22,7 +22,7 @@ import it.cnr.isti.hlt.processfast.core.TaskDataContext;
 import it.cnr.isti.hlt.processfast.data.*;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast.utils.Procedure3;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.*;
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-public class GParsPartitionableDataset<T extends Serializable> implements PartitionableDataset<T> {
+public class MTPartitionableDataset<T extends Serializable> implements PartitionableDataset<T> {
 
     /**
      * The maximum size of a partition (max number of items to process in memory). Default is 1000000.
@@ -49,7 +49,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
      */
     ImmutableDataSourceIteratorProvider<T> dataSourceIteratorProvider;
 
-    public GParsTaskContext getTc() {
+    public MTTaskContext getTc() {
         return tc;
     }
 
@@ -57,13 +57,13 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     /**
      * The GPars task context.
      */
-    protected GParsTaskContext tc;
+    protected MTTaskContext tc;
 
     /**
      * Current storage manager.
      */
     //protected PDResultsStorageManager storageManager
-    public GParsPartitionableDataset(GParsTaskContext tc, ImmutableDataSourceIteratorProvider<T> provider) {
+    public MTPartitionableDataset(MTTaskContext tc, ImmutableDataSourceIteratorProvider<T> provider) {
         if (tc == null)
             throw new NullPointerException("The task context is 'null'");
         if (provider == null)
@@ -74,7 +74,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     }
 
 
-    public GParsPartitionableDataset(GParsPartitionableDataset previousPD) {
+    public MTPartitionableDataset(MTPartitionableDataset previousPD) {
         if (previousPD == null)
             throw new NullPointerException("The previous partitionable dataset is 'null'");
         this.transformations = new ArrayList<>();
@@ -96,9 +96,9 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         if (partitionSize < 1)
             throw new IllegalArgumentException("The partition size is invalid: ${partitionSize}");
 
-        GParsPartitionableDataset<T> pd = new GParsPartitionableDataset<T>(this);
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
         PDCustomizeTransformation ct = new PDCustomizeTransformation();
-        ct.setCustomizationCode((GParsPartitionableDataset pad) -> {
+        ct.setCustomizationCode((MTPartitionableDataset pad) -> {
             pad.maxPartitionSize = partitionSize;
         });
         pd.transformations.add(ct);
@@ -182,9 +182,9 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
             List<ImmutableDataSourceIteratorProvider> providerToDelete = new ArrayList<>();
             PDResultsStorageManager storageManager = tc.getRuntime().getPdResultsStorageManagerProvider().createStorageManager(tc.getRuntime().getPdResultsStorageManagerProvider().generateUniqueStorageManagerID());
             ImmutableDataSourceIteratorProvider computedProvider = computeAllIntermediateResults(storageManager, dataSourceIteratorProvider, transformations, providerToDelete, transformationsSplits, cacheType, true);
-            return new GParsPartitionableDataset<T>(tc, computedProvider);
+            return new MTPartitionableDataset<T>(tc, computedProvider);
         } else {
-            return new GParsPartitionableDataset<T>(tc, dataSourceIteratorProvider);
+            return new MTPartitionableDataset<T>(tc, dataSourceIteratorProvider);
         }
     }
 
@@ -193,7 +193,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         if (func == null)
             throw new NullPointerException("The function code is 'null'");
 
-        GParsPartitionableDataset<Out> pd = new GParsPartitionableDataset<Out>(this);
+        MTPartitionableDataset<Out> pd = new MTPartitionableDataset<Out>(this);
         pd.transformations.add(new PDMapTransformation<T, Out>(tc, func, maxPartitionSize));
         return pd;
     }
@@ -203,7 +203,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         if (func == null)
             throw new NullPointerException("The function code is 'null'");
 
-        GParsPairPartitionableDataset<K, V> pd = new GParsPairPartitionableDataset<>(this);
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<>(this);
         pd.transformations.add(new PDMapPairTransformation<T, K, V>(tc, func, maxPartitionSize));
         return pd;
     }
@@ -213,7 +213,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         if (func == null)
             throw new NullPointerException("The function code is 'null'");
 
-        GParsPartitionableDataset<T> pd = new GParsPartitionableDataset<T>(this);
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
         pd.transformations.add(new PDFilterTransformation<T>(tc, func, maxPartitionSize));
         return pd;
     }
@@ -223,7 +223,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         if (func == null)
             throw new NullPointerException("The function code is 'null'");
 
-        GParsPartitionableDataset<Out> pd = new GParsPartitionableDataset<Out>(this);
+        MTPartitionableDataset<Out> pd = new MTPartitionableDataset<Out>(this);
         pd.transformations.add(new PDMapFlatTransformation<>(tc, func, maxPartitionSize));
         return pd;
     }
@@ -233,7 +233,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         if (func == null)
             throw new NullPointerException("The function code is 'null'");
 
-        GParsPairPartitionableDataset<K, V> pd = new GParsPairPartitionableDataset<K, V>(this);
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<K, V>(this);
         pd.transformations.add(new PDMapPairFlatTransformation<>(tc, func, maxPartitionSize));
         return pd;
     }
@@ -243,11 +243,11 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     public PartitionableDataset<T> union(PartitionableDataset<T> dataset) {
         if (dataset == null)
             throw new NullPointerException("The specified dataset is 'null'");
-        if (!(dataset instanceof GParsPartitionableDataset))
+        if (!(dataset instanceof MTPartitionableDataset))
             throw new IllegalArgumentException("The dataset to intersect must be of type ${GParsPartitionableDataset.class.name}");
 
-        GParsPartitionableDataset<T> pd = new GParsPartitionableDataset<T>(this);
-        pd.transformations.add(new PDUnionTransformation<T>(tc, (GParsPartitionableDataset<T>) dataset, maxPartitionSize));
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
+        pd.transformations.add(new PDUnionTransformation<T>(tc, (MTPartitionableDataset<T>) dataset, maxPartitionSize));
         return pd;
     }
 
@@ -255,10 +255,10 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     public <T1 extends Serializable> PartitionableDataset<Pair<T, T1>> pair(PartitionableDataset<T1> dataset) {
         if (dataset == null)
             throw new NullPointerException("The specified dataset is 'null'");
-        if (!(dataset instanceof GParsPartitionableDataset))
+        if (!(dataset instanceof MTPartitionableDataset))
             throw new IllegalArgumentException("The dataset to intersect must be of type ${GParsPartitionableDataset.class.name}");
-        GParsPartitionableDataset<Pair<T, T1>> pd = new GParsPartitionableDataset<Pair<T, T1>>(this);
-        pd.transformations.add(new PDPairTransformation<T>(tc, (GParsPartitionableDataset) dataset, maxPartitionSize));
+        MTPartitionableDataset<Pair<T, T1>> pd = new MTPartitionableDataset<Pair<T, T1>>(this);
+        pd.transformations.add(new PDPairTransformation<T>(tc, (MTPartitionableDataset) dataset, maxPartitionSize));
         return pd;
     }
 
@@ -266,24 +266,24 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     public PartitionableDataset<T> intersection(PartitionableDataset<T> dataset) {
         if (dataset == null)
             throw new NullPointerException("The specified dataset is 'null'");
-        if (!(dataset instanceof GParsPartitionableDataset))
+        if (!(dataset instanceof MTPartitionableDataset))
             throw new IllegalArgumentException("The dataset to intersect must be of type ${GParsPartitionableDataset.class.name}");
 
-        GParsPartitionableDataset<T> pd = new GParsPartitionableDataset<T>(this);
-        pd.transformations.add(new PDIntersectionTransformation<T>(tc, (GParsPartitionableDataset<T>) dataset, maxPartitionSize));
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
+        pd.transformations.add(new PDIntersectionTransformation<T>(tc, (MTPartitionableDataset<T>) dataset, maxPartitionSize));
         return pd;
     }
 
     @Override
     public PartitionableDataset<T> distinct() {
-        GParsPartitionableDataset<T> pd = new GParsPartitionableDataset<T>(this);
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
         pd.transformations.add(new PDDistinctTransformation<T>(tc, maxPartitionSize));
         return pd;
     }
 
     @Override
     public PartitionableDataset<T> sort(boolean sortAscending) {
-        GParsPartitionableDataset<T> pd = new GParsPartitionableDataset<T>(this);
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
         pd.transformations.add(new PDSortTransformation<>(tc, maxPartitionSize, sortAscending));
         return pd;
     }
@@ -292,7 +292,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     public <K extends Serializable> PairPartitionableDataset<K, DataIterable<T>> groupBy(PDFunction<T, K> func) {
         if (func == null)
             throw new NullPointerException("The function code is 'null'");
-        GParsPairPartitionableDataset<K, DataIterable<T>> pd = new GParsPairPartitionableDataset<>(this);
+        MTPairPartitionableDataset<K, DataIterable<T>> pd = new MTPairPartitionableDataset<>(this);
         pd.transformations.add(new PDGroupByTransformation<T, K>(tc, func, maxPartitionSize));
         return pd;
     }
@@ -301,11 +301,11 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
     public <U extends Serializable> PairPartitionableDataset<T, U> cartesian(PartitionableDataset<U> dataset) {
         if (dataset == null)
             throw new NullPointerException("The specified dataset is 'null'");
-        if (!(dataset instanceof GParsPartitionableDataset))
+        if (!(dataset instanceof MTPartitionableDataset))
             throw new IllegalArgumentException("The dataset to use must be of type ${GParsPartitionableDataset.class.name}");
 
-        GParsPairPartitionableDataset<T, U> pd = new GParsPairPartitionableDataset<>(this);
-        pd.transformations.add(new PDCartesianTransformation<T>(tc, (GParsPartitionableDataset) dataset, maxPartitionSize));
+        MTPairPartitionableDataset<T, U> pd = new MTPairPartitionableDataset<>(this);
+        pd.transformations.add(new PDCartesianTransformation<T>(tc, (MTPartitionableDataset) dataset, maxPartitionSize));
         return pd;
     }
 
@@ -448,7 +448,7 @@ public class GParsPartitionableDataset<T extends Serializable> implements Partit
         List<PDTransformation> toProcess = new ArrayList<>();
         for (PDBaseTransformation bt : tr)
             toProcess.add((PDTransformation) bt);
-        T1 results = (T1) computeFinalResults(storageManager, currentProvider, toProcess, action, CacheType.ON_DISK);
+        T1 results = computeFinalResults(storageManager, currentProvider, toProcess, action, CacheType.ON_DISK);
 
         // Delete temporary storage manager.
         tc.getRuntime().getPdResultsStorageManagerProvider().deleteStorageManager(storageManager.getStorageManagerID());

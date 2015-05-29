@@ -2,7 +2,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PDCollectAction<Out extends Serializable> implements PDAction<Collection<Out>> {
-    public PDCollectAction(GParsTaskContext tc) {
+    public PDCollectAction(MTTaskContext tc) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         this.tc = tc;
     }
@@ -56,5 +56,5 @@ public class PDCollectAction<Out extends Serializable> implements PDAction<Colle
         return true;
     }
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
 }

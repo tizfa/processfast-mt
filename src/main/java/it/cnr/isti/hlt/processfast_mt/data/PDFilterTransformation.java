@@ -3,7 +3,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PDFunction;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.util.Collection;
 import java.util.Map;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public class PDFilterTransformation<T> implements PDTransformation {
-    public PDFilterTransformation(GParsTaskContext tc, PDFunction<T, Boolean> code, int maxBufferSize) {
+    public PDFilterTransformation(MTTaskContext tc, PDFunction<T, Boolean> code, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (code == null) throw new NullPointerException("The programmer's code is 'null'");
         this.tc = tc;
@@ -61,6 +61,6 @@ public class PDFilterTransformation<T> implements PDTransformation {
 
 
     private final PDFunction<T, Boolean> code;
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final int maxBufferSize;
 }

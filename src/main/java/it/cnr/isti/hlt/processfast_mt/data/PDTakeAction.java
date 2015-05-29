@@ -1,7 +1,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PDTakeAction<Out extends Serializable> implements PDAction<Collection<Out>> {
-    public PDTakeAction(GParsTaskContext tc, final long startFrom, final long numItems) {
+    public PDTakeAction(MTTaskContext tc, final long startFrom, final long numItems) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (startFrom < 0)
             throw new IllegalArgumentException("The startFrom parameter value is invalid: " + String.valueOf(startFrom));
@@ -65,7 +65,7 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
     }
 
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final long startFrom;
     private final long numItems;
 }

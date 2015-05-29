@@ -1,7 +1,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 public class PDContainsAction<ItemType extends Serializable> implements PDAction<Boolean> {
 
-    public PDContainsAction(GParsTaskContext tc, ItemType item) {
+    public PDContainsAction(MTTaskContext tc, ItemType item) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (item == null) throw new NullPointerException("The item is 'null'");
         this.tc = tc;
@@ -44,6 +44,6 @@ public class PDContainsAction<ItemType extends Serializable> implements PDAction
     }
 
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final ItemType item;
 }

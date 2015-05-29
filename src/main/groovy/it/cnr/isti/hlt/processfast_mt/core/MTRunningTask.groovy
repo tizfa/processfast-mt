@@ -25,12 +25,12 @@ import it.cnr.isti.hlt.processfast.data.RamDictionary
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsRunningTask {
+class MTRunningTask {
 
     /**
      * The tasks set owning this primitive task.
      */
-    GParsRunningTasksSet ownerTasksSet
+    MTRunningTasksSet ownerTasksSet
 
     /**
      * The code of the task.
@@ -67,7 +67,7 @@ class GParsRunningTask {
      */
     String virtualMachineName = ""
 
-    GParsRunningTask(GParsRunningTasksSet ownerTasksSet, Task taskCode) {
+    MTRunningTask(MTRunningTasksSet ownerTasksSet, Task taskCode) {
         if (ownerTasksSet == null)
             throw new NullPointerException("The owner tasks set is 'null'")
         if (taskCode == null)

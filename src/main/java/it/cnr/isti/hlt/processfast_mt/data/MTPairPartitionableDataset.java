@@ -22,7 +22,7 @@ import it.cnr.isti.hlt.processfast.core.TaskDataContext;
 import it.cnr.isti.hlt.processfast.data.*;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast.utils.Procedure3;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 
@@ -32,27 +32,27 @@ import java.io.Serializable;
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-public class GParsPairPartitionableDataset<K extends Serializable, V extends Serializable> extends GParsPartitionableDataset<Pair<K, V>> implements PairPartitionableDataset<K, V> {
+public class MTPairPartitionableDataset<K extends Serializable, V extends Serializable> extends MTPartitionableDataset<Pair<K, V>> implements PairPartitionableDataset<K, V> {
 
-    public GParsPairPartitionableDataset(GParsTaskContext tc, ImmutableDataSourceIteratorProvider<Pair<K, V>> provider) {
+    public MTPairPartitionableDataset(MTTaskContext tc, ImmutableDataSourceIteratorProvider<Pair<K, V>> provider) {
         super(tc, provider);
     }
 
 
-    public GParsPairPartitionableDataset(GParsPartitionableDataset previousPD) {
+    public MTPairPartitionableDataset(MTPartitionableDataset previousPD) {
         super(previousPD);
     }
 
     @Override
     public PairPartitionableDataset<K, V> reduceByKey(PDFunction2<V, V, V> func) {
-        GParsPairPartitionableDataset pd = new GParsPairPartitionableDataset<K, V>(this);
+        MTPairPartitionableDataset pd = new MTPairPartitionableDataset<K, V>(this);
         pd.transformations.add(new PDReduceByKeyTransformation<K, V>(this.tc, func, maxPartitionSize));
         return pd;
     }
 
     @Override
     public PairPartitionableDataset<K, V> sortByKey(boolean ascending) {
-        GParsPairPartitionableDataset<K, V> pd = new GParsPairPartitionableDataset<>(this);
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<>(this);
         pd.transformations.add(new PDSortByKeyTransformation(this.tc, maxPartitionSize, ascending));
         return pd;
     }
@@ -70,13 +70,13 @@ public class GParsPairPartitionableDataset<K extends Serializable, V extends Ser
     @Override
     public PairPartitionableDataset<K, V> enableLocalComputation(boolean enable) {
         // Ignored on a multi-thread runtime. Always local computation!
-        return new GParsPairPartitionableDataset<K, V>(this);
+        return new MTPairPartitionableDataset<K, V>(this);
     }
 
     @Override
     public PairPartitionableDataset<K, V> cache(CacheType cacheType) {
-        GParsPartitionableDataset cached = (GParsPartitionableDataset) super.cache(cacheType);
-        return new GParsPairPartitionableDataset<K, V>(cached.getTc(), cached.dataSourceIteratorProvider);
+        MTPartitionableDataset cached = (MTPartitionableDataset) super.cache(cacheType);
+        return new MTPairPartitionableDataset<K, V>(cached.getTc(), cached.dataSourceIteratorProvider);
     }
 
     @Override

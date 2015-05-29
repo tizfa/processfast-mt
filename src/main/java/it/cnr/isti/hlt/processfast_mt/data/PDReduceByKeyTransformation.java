@@ -5,7 +5,7 @@ import it.cnr.isti.hlt.processfast.data.PDFunction2;
 import it.cnr.isti.hlt.processfast.data.PDFunctionCollector;
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.*;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public class PDReduceByKeyTransformation<K extends Serializable, V extends Serializable> implements PDTransformation {
-    public PDReduceByKeyTransformation(GParsTaskContext tc, PDFunction2<V, V, V> code, int maxBufferSize) {
+    public PDReduceByKeyTransformation(MTTaskContext tc, PDFunction2<V, V, V> code, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (code == null) throw new NullPointerException("The programmer's code is 'null");
 
@@ -90,7 +90,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
         return true;
     }
 
-    public final GParsTaskContext getTc() {
+    public final MTTaskContext getTc() {
         return tc;
     }
 
@@ -102,7 +102,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
         return code;
     }
 
-    private final GParsTaskContext tc;
+    private final MTTaskContext tc;
     private final int maxBufferSize;
     private final PDFunction2<V, V, V> code;
 }

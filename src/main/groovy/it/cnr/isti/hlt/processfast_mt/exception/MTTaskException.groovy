@@ -23,11 +23,11 @@ import it.cnr.isti.hlt.processfast.exception.TaskException
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GparsTaskException extends Exception implements TaskException {
+class MTTaskException extends Exception implements TaskException {
     final String taskName
     final String virtualMachineName
 
-    GparsTaskException(String vmName, String taskName, String message, Throwable t) {
+    MTTaskException(String vmName, String taskName, String message, Throwable t) {
         super(message, t)
         if (vmName == null)
             throw new IllegalArgumentException("The VM name is 'null'")

@@ -22,29 +22,14 @@ import it.cnr.isti.hlt.processfast.core.*
 import it.cnr.isti.hlt.processfast.data.Dictionary
 import it.cnr.isti.hlt.processfast.data.RamDictionary
 import it.cnr.isti.hlt.processfast.utils.Function1
-import it.cnr.isti.hlt.processfast.utils.Procedure1
+import it.cnr.isti.hlt.processfast.utils.Pair
 
 /**
- * A GPars task descriptor.
+ * A GPars tasks set descriptor.
+ *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
- * @since 1.0.0
  */
-class GParsTaskDescriptor implements TaskDescriptor {
-
-    /**
-     * The task wrapped by this descriptor.
-     */
-    final Task taskCode
-
-    /**
-     * The code used to connect to available connectors.
-     */
-    Procedure1<WithConnectorInfo> withConnectorsData = null
-
-    /**
-     * The code that declares which barriers will be used by this task.
-     */
-    Function1<WithBarrierInfo, Iterator<String>> withBarriersCode = null
+class MTTaskSetDescriptor implements TaskSetDescriptor {
 
     /**
      * The code that specifies on which virtual machine execute this task.
@@ -52,7 +37,7 @@ class GParsTaskDescriptor implements TaskDescriptor {
     Function1<WithVirtualMachineInfo, String> onVirtualMachineCode = null
 
     /**
-     * The number of task instances to create.
+     * The minimum number of task instances to create.
      */
     int numInstances = 1
 
@@ -70,41 +55,54 @@ class GParsTaskDescriptor implements TaskDescriptor {
     int dataComputationalResourcesPriority = 1
 
     /**
-     * The input data dictionary used to compute task private data dictionary.
+     * The code to attach virtual connectors.
+     */
+    Function1<WithAttachedVirtualConnectorInfo, Iterator<Pair<String, String>>> withAttachedVirtualConnectorsCode = null
+
+    /**
+     * The code to attach virtual barriers.
+     */
+    Function1<WithAttachedVirtualBarrierInfo, Iterator<Pair<String, String>>> withAttachedVirtualBarriersCode = null
+
+    /**
+     * The task set represented by this descriptor.
+     */
+    MTTaskSet tasksSet = null
+
+    /**
+     * The input data dictionary used to compute tasks set private data dictionary.
      */
     Dictionary taskInputDataDictionary = new RamDictionary()
 
     /**
-     * The code specified by user which generates the private data of the task.
+     * The code specified by user which generates the private data of the tasks set.
      */
     Function1<WithDataDictionaryInfo, Dictionary> withDataDictionaryCode = null
 
-
-    GParsTaskDescriptor(Task task) {
-        if (task == null)
-            throw new NullPointerException("The specified task is 'null'")
-        this.taskCode = task
+    MTTaskSetDescriptor(MTTaskSet tasksSet) {
+        if (tasksSet == null)
+            throw new NullPointerException("The specified tasks set is 'null'")
+        this.tasksSet = tasksSet
     }
 
     @Override
-    TaskDescriptor withConnectors(Procedure1<WithConnectorInfo> func) {
+    TaskSetDescriptor withAttachedVirtualConnectors(Function1<WithAttachedVirtualConnectorInfo, Iterator<Pair<String, String>>> func) {
         if (func == null)
             throw new NullPointerException("The specified function is 'null'")
-        this.withConnectorsData = func
+        this.withAttachedVirtualConnectorsCode = func
         this
     }
 
-
     @Override
-    TaskDescriptor withBarriers(Function1<WithBarrierInfo, Iterator<String>> barriers) {
-        if (barriers == null)
+    TaskSetDescriptor withAttachedVirtualBarriers(Function1<WithAttachedVirtualBarrierInfo, Iterator<Pair<String, String>>> func) {
+        if (func == null)
             throw new NullPointerException("The specified function is 'null'")
-        withBarriersCode = barriers
+        this.withAttachedVirtualBarriersCode = func
         this
     }
 
     @Override
-    TaskDescriptor onVirtualMachine(Function1<WithVirtualMachineInfo, String> machineSelector) {
+    TaskSetDescriptor onVirtualMachine(Function1<WithVirtualMachineInfo, String> machineSelector) {
         if (machineSelector == null)
             throw new NullPointerException("The specified function is 'null'")
         this.onVirtualMachineCode = machineSelector
@@ -112,17 +110,15 @@ class GParsTaskDescriptor implements TaskDescriptor {
     }
 
     @Override
-    TaskDescriptor withNumInstances(int minNumInstances, int maxNumInstances) {
+    TaskSetDescriptor withNumInstances(int minNumInstances, int maxNumInstances) {
         if (minNumInstances <= 0)
-            throw new IllegalArgumentException("The minimum number of requested instance is invalid: ${minNumInstances}")
-        if (minNumInstances > maxNumInstances)
-            throw new IllegalArgumentException("The minimum number of instances is greater than the maximum number of instances: ${minNumInstances} > ${maxNumInstances}")
+            throw new IllegalArgumentException("The number of requested instance is invalid: ${minNumInstances}")
         this.numInstances = minNumInstances
         this
     }
 
     @Override
-    TaskDescriptor withName(Function1<Integer, String> nameSelector) {
+    TaskSetDescriptor withName(Function1<Integer, String> nameSelector) {
         if (nameSelector == null)
             throw new NullPointerException("The specified function is 'null'")
         this.withNameCode = nameSelector
@@ -131,7 +127,7 @@ class GParsTaskDescriptor implements TaskDescriptor {
 
 
     @Override
-    TaskDescriptor withDataComputationalResourcesPriority(int priority) {
+    TaskSetDescriptor withDataComputationalResourcesPriority(int priority) {
         if (priority < 1)
             throw new IllegalArgumentException("The priority must be greater equals than 1. Current value: ${priority}")
         dataComputationalResourcesPriority = priority
@@ -139,7 +135,7 @@ class GParsTaskDescriptor implements TaskDescriptor {
     }
 
     @Override
-    TaskDescriptor withDataDictionary(Dictionary dictionary, Function1<WithDataDictionaryInfo, Dictionary> func) {
+    TaskSetDescriptor withDataDictionary(Dictionary dictionary, Function1<WithDataDictionaryInfo, Dictionary> func) {
         if (dictionary == null)
             throw new NullPointerException("The input data dictionary is 'null'")
         if (func == null)
@@ -150,14 +146,15 @@ class GParsTaskDescriptor implements TaskDescriptor {
     }
 
     @Override
-    TaskDescriptor withDataDictionary(Function1<WithDataDictionaryInfo, Dictionary> func) {
+    TaskSetDescriptor withDataDictionary(Function1<WithDataDictionaryInfo, Dictionary> func) {
         return withDataDictionary(new RamDictionary(), { wddi ->
             return func.call(wddi)
-        } as Function1<WithDataDictionaryInfo, Dictionary>);
+        } as Function1<WithDataDictionaryInfo, Dictionary>)
     }
 
     @Override
-    TaskDescriptor onFailure(Function1<FailureInfo, HardwareFailureAction> func) {
-        this
+    TaskSetDescriptor onFailure(Function1<FailureInfo, HardwareFailureAction> func) {
+        // Unused on GPars.
+        return this
     }
 }

@@ -28,12 +28,12 @@ import it.cnr.isti.hlt.processfast.core.LogLevel
 import it.cnr.isti.hlt.processfast.core.Logger
 import it.cnr.isti.hlt.processfast.data.RamDictionary
 import it.cnr.isti.hlt.processfast.utils.Pair
-import it.cnr.isti.hlt.processfast_mt.connector.GParsBarrier
-import it.cnr.isti.hlt.processfast_mt.connector.GParsBroadcastQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsLoadBalancingQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsSingleValueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskLoadBalancingQueueConnector
-import it.cnr.isti.hlt.processfast_mt.exception.GparsTaskException
+import it.cnr.isti.hlt.processfast_mt.connector.MTBarrier
+import it.cnr.isti.hlt.processfast_mt.connector.MTBroadcastQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTSingleValueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
+import it.cnr.isti.hlt.processfast_mt.exception.MTTaskException
 
 import java.util.concurrent.ForkJoinPool
 
@@ -43,14 +43,14 @@ import java.util.concurrent.ForkJoinPool
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsProgramOrchestrator {
+class MTProgramOrchestrator {
 
     private final String SYSTEM_LOGGER = "PROCESSFAST_RUNTIME"
 
     /**
      * The used GPars runtime.
      */
-    final GParsRuntime runtime
+    final MTRuntime runtime
 
     /**
      * The global PGroup used to run the programmer's defined tasks.
@@ -61,13 +61,13 @@ class GParsProgramOrchestrator {
      * The queue used to log messages from tasks involved in the running
      * program.
      */
-    GParsLoadBalancingQueueConnector logMessagesQueue = new GParsLoadBalancingQueueConnector(Integer.MAX_VALUE)
+    MTLoadBalancingQueueConnector logMessagesQueue = new MTLoadBalancingQueueConnector(Integer.MAX_VALUE)
 
     /**
      * The queue used to signal exceptions from tasks involved in the running
      * program.
      */
-    GParsLoadBalancingQueueConnector exceptionMessaggesQueue = new GParsLoadBalancingQueueConnector(Integer.MAX_VALUE)
+    MTLoadBalancingQueueConnector exceptionMessaggesQueue = new MTLoadBalancingQueueConnector(Integer.MAX_VALUE)
 
     /**
      * The queue used to signal the start and the end of system tasks
@@ -82,17 +82,17 @@ class GParsProgramOrchestrator {
     /**
      * The set of running tasks sets.
      */
-    final List<GParsRunningTasksSet> runningTasksSets = []
+    final List<MTRunningTasksSet> runningTasksSets = []
 
     /**
      * The initial barrier used to synchronize all declared tasks before starting the program.
      */
-    GParsBarrier programStartBarrier
+    MTBarrier programStartBarrier
 
     /**
      * The initial barrier used to synchronize all system processors before starting the program.
      */
-    GParsBarrier systemProcessorsStartBarrier
+    MTBarrier systemProcessorsStartBarrier
 
     /**
      * The list of operators (tasks) declared in the running program.
@@ -102,27 +102,27 @@ class GParsProgramOrchestrator {
     private DataflowProcessor loggerOperator
     private DataflowProcessor exceptionHandlerOperator
 
-    GParsLogManager internalLogManager
+    MTLogManager internalLogManager
 
     /**
      * The fork-join pool used for data parallelism.
      */
     ForkJoinPool dataParallelismPool
 
-    GParsProgramOrchestrator(GParsRuntime runtime) {
+    MTProgramOrchestrator(MTRuntime runtime) {
         if (runtime == null)
             throw new NullPointerException("The specified runtime is 'null'")
 
         this.runtime = runtime
-        internalLogManager = new GParsLogManager(this)
-        programStartBarrier = new GParsBarrier("_program_start_barrier_")
-        systemProcessorsStartBarrier = new GParsBarrier("_system_processors_barrier_")
+        internalLogManager = new MTLogManager(this)
+        programStartBarrier = new MTBarrier("_program_start_barrier_")
+        systemProcessorsStartBarrier = new MTBarrier("_system_processors_barrier_")
     }
 
     private void initGParsTasksGroup() {
         // Reset everything to initial state.
-        logMessagesQueue = new GParsLoadBalancingQueueConnector(Integer.MAX_VALUE)
-        exceptionMessaggesQueue = new GParsLoadBalancingQueueConnector(Integer.MAX_VALUE)
+        logMessagesQueue = new MTLoadBalancingQueueConnector(Integer.MAX_VALUE)
+        exceptionMessaggesQueue = new MTLoadBalancingQueueConnector(Integer.MAX_VALUE)
         systemStartStopSignals = new DataflowBroadcast()
         startStopSignals = new DataflowBroadcast()
         runningOperators.clear()
@@ -140,7 +140,7 @@ class GParsProgramOrchestrator {
      *
      * @param tasksSet The tasks set to be executed.
      */
-    void run(GParsTaskSet tasksSet) {
+    void run(MTTaskSet tasksSet) {
 
         // Declare all tasks contained in the tasks set.
         declareMainTasksSet(tasksSet)
@@ -222,7 +222,7 @@ class GParsProgramOrchestrator {
 
         runningTasksSets.each { rt ->
             if (rt.tasksSetInitializationCode != null) {
-                rt.tasksSetInitializationCode.call(new GParsSystemContext(runtime))
+                rt.tasksSetInitializationCode.call(new MTSystemContext(runtime))
             }
         }
 
@@ -233,22 +233,22 @@ class GParsProgramOrchestrator {
 
         runningTasksSets.each { rt ->
             if (rt.tasksSetTerminationCode != null) {
-                rt.tasksSetTerminationCode.call(new GParsSystemContext(runtime))
+                rt.tasksSetTerminationCode.call(new MTSystemContext(runtime))
             }
         }
 
     }
 
 
-    private DataflowProcessor createTask(GParsRunningTasksSet tasksSet, GParsRunningTask task) {
+    private DataflowProcessor createTask(MTRunningTasksSet tasksSet, MTRunningTask task) {
         def op = null
         tasksGroup.with {
             def startStopChannel = startStopSignals.createReadChannel()
             def listener = new DataflowEventAdapter() {
                 @Override
                 boolean onException(final DataflowProcessor processor, final Throwable e) {
-                    GParsSystemContext sc = new GParsSystemContext(runtime)
-                    sc.logManager.getLogger(SYSTEM_LOGGER).error("Fatal error executing processfast task", new GparsTaskException(task.virtualMachineName, task.taskName, "Executing task", e))
+                    MTSystemContext sc = new MTSystemContext(runtime)
+                    sc.logManager.getLogger(SYSTEM_LOGGER).error("Fatal error executing processfast task", new MTTaskException(task.virtualMachineName, task.taskName, "Executing task", e))
                     runningOperators*.terminate()
                     return true   //Indicate whether to terminate the operator or not
                 }
@@ -256,9 +256,9 @@ class GParsProgramOrchestrator {
             op = operator(inputs: [startStopChannel], outputs: [], listeners: [listener]) {
                 def tc
                 if (!tasksSet.streamableTasksSet)
-                    tc = new GParsTaskContext(runtime, tasksSet, task)
+                    tc = new MTTaskContext(runtime, tasksSet, task)
                 else
-                    tc = new GParsTaskContext(runtime, tasksSet, task)
+                    tc = new MTTaskContext(runtime, tasksSet, task)
                 tc.logManager.getLogger(SYSTEM_LOGGER).debug("Task <${computeCompleteTaskName(task)}> started.")
                 programStartBarrier.waitOnBarrier()
                 task.taskCode.exec(tc)
@@ -271,10 +271,10 @@ class GParsProgramOrchestrator {
     }
 
 
-    private String computeCompleteTaskName(GParsRunningTask task) {
+    private String computeCompleteTaskName(MTRunningTask task) {
         def sb = new StringBuilder()
         sb.append(task.taskName)
-        GParsRunningTasksSet curTasksSet = task.ownerTasksSet
+        MTRunningTasksSet curTasksSet = task.ownerTasksSet
         while (curTasksSet != null) {
             sb.insert(0, curTasksSet.tasksSetName + "_")
             curTasksSet = curTasksSet.tasksSetParent
@@ -288,7 +288,7 @@ class GParsProgramOrchestrator {
         runtime.logManager.getLogger(SYSTEM_LOGGER).setLogLevel(LogLevel.DEBUG)
         tasksGroup.with {
             def startStopChannel = systemStartStopSignals.createReadChannel()
-            GParsTaskLoadBalancingQueueConnector messages = new GParsTaskLoadBalancingQueueConnector(logMessagesQueue)
+            MTTaskLoadBalancingQueueConnector messages = new MTTaskLoadBalancingQueueConnector(logMessagesQueue)
             messages.taskName = "GlobalLoggerProcessor"
 
             op = operator([startStopChannel], []) {
@@ -336,7 +336,7 @@ class GParsProgramOrchestrator {
         def op = null
         tasksGroup.with {
             def startStopChannel = systemStartStopSignals.createReadChannel()
-            GParsTaskLoadBalancingQueueConnector messages = new GParsTaskLoadBalancingQueueConnector(exceptionMessaggesQueue)
+            MTTaskLoadBalancingQueueConnector messages = new MTTaskLoadBalancingQueueConnector(exceptionMessaggesQueue)
             messages.taskName = "GlobalExceptionHandlerProcessor"
             op = operator([startStopChannel], []) {
                 runtime.logManager.getLogger(SYSTEM_LOGGER).debug("Exception handler processor started.")
@@ -361,7 +361,7 @@ class GParsProgramOrchestrator {
      *
      * @param tasksSet The tasks set.
      */
-    private void declareMainTasksSet(GParsTaskSet tasksSet) {
+    private void declareMainTasksSet(MTTaskSet tasksSet) {
         if (tasksSet == null)
             throw new NullPointerException("The tasks set is 'null'")
 
@@ -371,7 +371,7 @@ class GParsProgramOrchestrator {
             throw new IllegalStateException("Inside the main tasks set, you can not declare any virtual barrier")
 
         runningTasksSets.clear()
-        GParsRunningTasksSet rts = new GParsRunningTasksSet()
+        MTRunningTasksSet rts = new MTRunningTasksSet()
         rts.streamableTasksSet = false
         rts.tasksSetName = "root_${System.currentTimeMillis()}"
         rts.tasksSetParent = null
@@ -396,10 +396,10 @@ class GParsProgramOrchestrator {
 
         // Create all contained streamable tasks sets.
         tasksSet.tasksDeclared.each { taskDeclared ->
-            if (taskDeclared instanceof GParsTaskDescriptor)
+            if (taskDeclared instanceof MTTaskDescriptor)
                 return
 
-            GParsTaskSetDescriptor td = taskDeclared
+            MTTaskSetDescriptor td = taskDeclared
             declareStreamableTasksSet(rts, td)
         }
 
@@ -408,10 +408,10 @@ class GParsProgramOrchestrator {
     }
 
 
-    private void initializeBarriers(GParsRunningTasksSet rts) {
+    private void initializeBarriers(MTRunningTasksSet rts) {
         // Initialize barriers with right counters.
         rts.barriersCounter.each { String barrierName, int counter ->
-            GParsBarrier b = rts.barriers.get(barrierName)
+            MTBarrier b = rts.barriers.get(barrierName)
             if (b == null)
                 throw new IllegalArgumentException("The barrier with name ${barrierName} has not been declared!")
             b.initializeBarrier(counter)
@@ -424,13 +424,13 @@ class GParsProgramOrchestrator {
      * @param tasksSetDescriptor The tasks set descriptor to declare.
      */
     private
-    def declareStreamableTasksSet(GParsRunningTasksSet parent, GParsTaskSetDescriptor tasksSetDescriptor) {
+    def declareStreamableTasksSet(MTRunningTasksSet parent, MTTaskSetDescriptor tasksSetDescriptor) {
 
         if (tasksSetDescriptor.withAttachedVirtualConnectorsCode == null)
             throw new IllegalStateException("A streamable tasks set must have at least 1 virtual connector declared!")
 
         for (int i = 0; i < tasksSetDescriptor.numInstances; i++) {
-            GParsRunningTasksSet rts = new GParsRunningTasksSet()
+            MTRunningTasksSet rts = new MTRunningTasksSet()
             if (tasksSetDescriptor.withNameCode != null)
                 rts.tasksSetName = tasksSetDescriptor.withNameCode.call(i)
             else
@@ -495,10 +495,10 @@ class GParsProgramOrchestrator {
 
             // Create all contained streamable tasks sets.
             tasksSet.tasksDeclared.each { taskDeclared ->
-                if (taskDeclared instanceof GParsTaskDescriptor)
+                if (taskDeclared instanceof MTTaskDescriptor)
                     return
 
-                GParsTaskSetDescriptor td = taskDeclared
+                MTTaskSetDescriptor td = taskDeclared
                 declareStreamableTasksSet(rts, td)
             }
 
@@ -507,14 +507,14 @@ class GParsProgramOrchestrator {
         }
     }
 
-    void createTasksOnTasksSet(GParsTaskSet tasksSet, GParsRunningTasksSet runningTasksSet) {
+    void createTasksOnTasksSet(MTTaskSet tasksSet, MTRunningTasksSet runningTasksSet) {
         tasksSet.tasksDeclared.each { taskDeclared ->
-            if (!(taskDeclared instanceof GParsTaskDescriptor))
+            if (!(taskDeclared instanceof MTTaskDescriptor))
                 return
 
-            GParsTaskDescriptor td = taskDeclared
+            MTTaskDescriptor td = taskDeclared
             for (int i = 0; i < td.numInstances; i++) {
-                GParsRunningTask rt = new GParsRunningTask(runningTasksSet, td.taskCode)
+                MTRunningTask rt = new MTRunningTask(runningTasksSet, td.taskCode)
 
                 // Set the instance numbers.
                 rt.numInstance = i
@@ -579,25 +579,25 @@ class GParsProgramOrchestrator {
         }
     }
 
-    void createBarriersOnTasksSet(GParsTaskSet tasksSet, GParsRunningTasksSet runningTasksSet) {
+    void createBarriersOnTasksSet(MTTaskSet tasksSet, MTRunningTasksSet runningTasksSet) {
         tasksSet.barriersDeclared.each { String name, unused ->
-            runningTasksSet.barriers.put(name, new GParsBarrier(name))
+            runningTasksSet.barriers.put(name, new MTBarrier(name))
         }
     }
 
-    private void createConnectorsOnTasksSet(GParsTaskSet tasksSet, GParsRunningTasksSet runningTasksSet) {
+    private void createConnectorsOnTasksSet(MTTaskSet tasksSet, MTRunningTasksSet runningTasksSet) {
         // Create all connectors.
         tasksSet.connectorsDeclared.each { String connectorName, ConnectorType connectorType ->
             int connectorSize = tasksSet.connectorsSizeDeclared.get(connectorName)
             switch (connectorType) {
                 case ConnectorType.SINGLE_VALUE:
-                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new GParsSingleValueConnector()))
+                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new MTSingleValueConnector()))
                     break
                 case ConnectorType.LOAD_BALANCING_QUEUE:
-                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new GParsLoadBalancingQueueConnector(connectorSize)))
+                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new MTLoadBalancingQueueConnector(connectorSize)))
                     break
                 case ConnectorType.BROADCAST_QUEUE:
-                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new GParsBroadcastQueueConnector(connectorSize)))
+                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new MTBroadcastQueueConnector(connectorSize)))
                     break
                 default:
                     throw new IllegalArgumentException("The specified connector type is unknown: ${connectorType}")

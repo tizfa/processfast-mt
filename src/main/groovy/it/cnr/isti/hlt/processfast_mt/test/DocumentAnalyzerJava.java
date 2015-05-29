@@ -22,7 +22,7 @@ import it.cnr.isti.hlt.processfast.core.*;
 import it.cnr.isti.hlt.processfast.data.CollectionDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
-import it.cnr.isti.hlt.processfast_mt.core.GParsRuntime;
+import it.cnr.isti.hlt.processfast_mt.core.MTRuntime;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -85,7 +85,7 @@ public class DocumentAnalyzerJava {
     }
 
     public static void main(String[] args) {
-        GParsRuntime runtime = new GParsRuntime();
+        MTRuntime runtime = new MTRuntime();
         runtime.setNumThreadsForDataParallelism(1);
         TaskSet ts = runtime.createTaskSet();
         createTask(ts);

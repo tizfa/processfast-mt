@@ -21,13 +21,13 @@ package it.cnr.isti.hlt.processfast_mt.test
 import groovyx.gpars.dataflow.DataflowBroadcast
 import groovyx.gpars.dataflow.operator.PoisonPill
 import groovyx.gpars.group.DefaultPGroup
-import it.cnr.isti.hlt.processfast_mt.connector.GParsBroadcastQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.GParsTaskBroadcastQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTBroadcastQueueConnector
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskBroadcastQueueConnector
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
-class GParsBroadcastQueueTest {
+class MTBroadcastQueueTest {
 
     static def main(args) {
         def tasksGroup = new DefaultPGroup()
@@ -42,14 +42,14 @@ class GParsBroadcastQueueTest {
                 readChannels << dv.createReadChannel()
             }
 
-            GParsBroadcastQueueConnector sharedQueue = new GParsBroadcastQueueConnector(1)
+            MTBroadcastQueueConnector sharedQueue = new MTBroadcastQueueConnector(1)
 
             Random r = new Random()
             def op1 = operator([rc1], []) {
 //            def op1 = task {
                 long idOp = r.nextLong()
                 println("Producer start ${idOp}")
-                GParsTaskBroadcastQueueConnector queue = new GParsTaskBroadcastQueueConnector(sharedQueue, "producer", false, true)
+                MTTaskBroadcastQueueConnector queue = new MTTaskBroadcastQueueConnector(sharedQueue, "producer", false, true)
                 (1..5).each {
                     queue.putValue(it)
                     println("Producer ${idOp}: val write: ${it}")
@@ -74,7 +74,7 @@ class GParsBroadcastQueueTest {
                 def op2 = operator([readChannels[i]], []) {
                     //def op2 = task {
                     long idOp = r.nextLong()
-                    GParsTaskBroadcastQueueConnector queue = new GParsTaskBroadcastQueueConnector(sharedQueue, "consumer" + idOp, true, false)
+                    MTTaskBroadcastQueueConnector queue = new MTTaskBroadcastQueueConnector(sharedQueue, "consumer" + idOp, true, false)
                     println("Consumer start ${idOp}")
                     while (true) {
                         def msg = queue.getValue()

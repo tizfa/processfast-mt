@@ -33,7 +33,7 @@ import it.cnr.isti.hlt.processfast.exception.ConnectorIllegalOperationException
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsLoadBalancingQueueConnector extends GParsConnector {
+class MTLoadBalancingQueueConnector extends MTConnector {
 
     /**
      * The constant used to signal the end of the stream.
@@ -55,7 +55,7 @@ class GParsLoadBalancingQueueConnector extends GParsConnector {
      */
     private int maxSize
 
-    GParsLoadBalancingQueueConnector(int maxSize) {
+    MTLoadBalancingQueueConnector(int maxSize) {
         if (maxSize < 1)
             throw new IllegalArgumentException("The maximum size is less than 1")
         isVirtual = false
@@ -88,7 +88,7 @@ class GParsLoadBalancingQueueConnector extends GParsConnector {
         return msg
     }
 
-    synchronized void putValue(GParsConnectorMessage v) {
+    synchronized void putValue(MTConnectorMessage v) {
         if (isEndOfStream()) {
             this.endOfStream = false
             this.dataflowQueue = new DataflowQueue()
@@ -115,16 +115,16 @@ class GParsLoadBalancingQueueConnector extends GParsConnector {
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class GParsTaskLoadBalancingQueueConnector implements Connector {
+class MTTaskLoadBalancingQueueConnector implements Connector {
 
     /**
      * The name of the task.
      */
     String taskName = "UnnamedTask"
 
-    final GParsLoadBalancingQueueConnector sharedConnector
+    final MTLoadBalancingQueueConnector sharedConnector
 
-    GParsTaskLoadBalancingQueueConnector(GParsLoadBalancingQueueConnector sharedConnector) {
+    MTTaskLoadBalancingQueueConnector(MTLoadBalancingQueueConnector sharedConnector) {
         if (sharedConnector == null)
             throw new NullPointerException("The shared connector is 'null'")
 
@@ -146,7 +146,7 @@ class GParsTaskLoadBalancingQueueConnector implements Connector {
         if (v == null)
             throw new NullPointerException("The specified value is 'null'")
 
-        sharedConnector.putValue(new GParsConnectorMessage(v, null))
+        sharedConnector.putValue(new MTConnectorMessage(v, null))
     }
 
     @Override
@@ -154,9 +154,9 @@ class GParsTaskLoadBalancingQueueConnector implements Connector {
         if (v == null)
             throw new NullPointerException("The specified value is 'null'")
 
-        def msg = new GParsConnectorMessage(v, new DataflowVariable())
+        def msg = new MTConnectorMessage(v, new DataflowVariable())
         sharedConnector.putValue(msg)
-        return GparsDataflowVariableValuePromise(msg.replyTo)
+        return MTDataflowVariableValuePromise(msg.replyTo)
     }
 
     @Override

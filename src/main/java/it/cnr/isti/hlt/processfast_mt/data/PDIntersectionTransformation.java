@@ -2,7 +2,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
-import it.cnr.isti.hlt.processfast_mt.core.GParsTaskContext;
+import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  */
 public class PDIntersectionTransformation<T extends Serializable> implements PDTransformation {
 
-    public PDIntersectionTransformation(GParsTaskContext tc, GParsPartitionableDataset<T> toIntersect, int maxBufferSize) {
+    public PDIntersectionTransformation(MTTaskContext tc, MTPartitionableDataset<T> toIntersect, int maxBufferSize) {
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (toIntersect == null) throw new NullPointerException("The partitionable dataset to intersect is 'null'");
         this.tc = tc;
@@ -67,7 +67,7 @@ public class PDIntersectionTransformation<T extends Serializable> implements PDT
         return true;
     }
 
-    private final GParsTaskContext tc;
-    private final GParsPartitionableDataset<T> toIntersect;
+    private final MTTaskContext tc;
+    private final MTPartitionableDataset<T> toIntersect;
     private final int maxBufferSize;
 }
