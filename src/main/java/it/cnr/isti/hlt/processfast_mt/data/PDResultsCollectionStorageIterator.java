@@ -35,8 +35,7 @@ public class PDResultsCollectionStorageIterator<T extends Serializable> implemen
 
     @Override
     public boolean hasNext() {
-        if ((readIdx + curIdx) >= storageSize) return false;
-        else return true;
+        return (readIdx + curIdx) < storageSize;
     }
 
     @Override

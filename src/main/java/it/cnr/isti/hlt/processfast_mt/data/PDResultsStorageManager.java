@@ -27,14 +27,14 @@ public interface PDResultsStorageManager {
      * @param cacheType Indicate where to store the storage.
      * @return The requested storage ID.
      */
-    public <T extends Serializable> PDResultsCollectionStorage<T> createCollectionStorage(String storageID, CacheType cacheType);
+    <T extends Serializable> PDResultsCollectionStorage<T> createCollectionStorage(String storageID, CacheType cacheType);
 
     /**
      * Delete the collection storage with the given ID.
      *
      * @param storageID The storage ID.
      */
-    public <T extends Serializable> void deleteCollectionStorage(String storageID);
+    <T extends Serializable> void deleteCollectionStorage(String storageID);
 
     /**
      * Create a storage containing PD results in the form of a sorted data set. If the storage does not exist, it will
@@ -45,14 +45,14 @@ public interface PDResultsStorageManager {
      * @param sortAscending True if the data must be ordered ascending, false if must be ordered descending.
      * @return The requested storage ID.
      */
-    public <K extends Comparable & Serializable, V extends Serializable> PDResultsSortedSetStorage<K, V> createSortedSetStorage(String storageID, CacheType cacheType, boolean sortAscending);
+    <K extends Comparable & Serializable, V extends Serializable> PDResultsSortedSetStorage<K, V> createSortedSetStorage(String storageID, CacheType cacheType, boolean sortAscending);
 
     /**
      * Delete the sorted storage with the given ID.
      *
      * @param storageID The storage ID.
      */
-    public <T extends Serializable> void deleteSortedSetStorage(String storageID);
+    <T extends Serializable> void deleteSortedSetStorage(String storageID);
 
     /**
      * Create a storage containing PD results in the form of unordered dictionary data. If the storage does not exist, it will
@@ -62,20 +62,20 @@ public interface PDResultsStorageManager {
      * @param cacheType Indicate where to store the storage.
      * @return The requested storage ID.
      */
-    public <K extends Serializable, V extends Serializable> PDResultsMapStorage<K, V> createMapStorage(String storageID, CacheType cacheType);
+    <K extends Serializable, V extends Serializable> PDResultsMapStorage<K, V> createMapStorage(String storageID, CacheType cacheType);
 
     /**
      * Delete the map storage with the given ID.
      *
      * @param storageID The storage ID.
      */
-    public <T extends Serializable> void deleteMapStorage(String storageID);
+    <T extends Serializable> void deleteMapStorage(String storageID);
 
     /**
      * Generate unique storage ID in the storage manager.
      *
      * @return An unique storage ID.
      */
-    public String generateUniqueStorageID();
+    String generateUniqueStorageID();
 }
 

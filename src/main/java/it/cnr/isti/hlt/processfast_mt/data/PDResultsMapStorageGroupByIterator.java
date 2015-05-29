@@ -35,7 +35,7 @@ public class PDResultsMapStorageGroupByIterator<K extends Serializable, V extend
     public Pair<K, DataIterable<V>> next() {
         if (!hasNext()) throw new NoSuchElementException("No more items in storage");
         K key = (K) keys.next();
-        Collection<V> listStorage = (Collection<V>) storage.get(key);
+        Collection<V> listStorage = storage.get(key);
         Pair p = new Pair(key, new CollectionDataIterable<V>(listStorage));
         return null;
     }

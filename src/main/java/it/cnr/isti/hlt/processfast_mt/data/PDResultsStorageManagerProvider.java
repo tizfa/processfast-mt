@@ -10,19 +10,19 @@ public interface PDResultsStorageManagerProvider {
      * @param storageManagerID The ID of the storage manager to create.
      * @return The new created storage manager.
      */
-    public abstract PDResultsStorageManager createStorageManager(String storageManagerID);
+    PDResultsStorageManager createStorageManager(String storageManagerID);
 
     /**
      * Delete the specified storage manager ID.
      *
      * @param storageManagerID
      */
-    public abstract void deleteStorageManager(String storageManagerID);
+    void deleteStorageManager(String storageManagerID);
 
     /**
      * Generate unique storage manager ID in the provider.
      *
      * @return An unique storage ID.
      */
-    public abstract String generateUniqueStorageManagerID();
+    String generateUniqueStorageManagerID();
 }

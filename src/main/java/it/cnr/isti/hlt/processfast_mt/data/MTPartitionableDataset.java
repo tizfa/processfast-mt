@@ -18,14 +18,20 @@
 
 package it.cnr.isti.hlt.processfast_mt.data;
 
+import it.cnr.isti.hlt.processfast.connector.ConnectorMessage;
 import it.cnr.isti.hlt.processfast.core.TaskDataContext;
 import it.cnr.isti.hlt.processfast.data.*;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast.utils.Procedure3;
+import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector;
+import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 /**
@@ -45,19 +51,14 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
      */
     protected List<PDBaseTransformation> transformations;
     /**
+     * The GPars task context.
+     */
+    protected MTTaskContext tc;
+    /**
      * The initial data source iterator.
      */
     ImmutableDataSourceIteratorProvider<T> dataSourceIteratorProvider;
 
-    public MTTaskContext getTc() {
-        return tc;
-    }
-
-
-    /**
-     * The GPars task context.
-     */
-    protected MTTaskContext tc;
 
     /**
      * Current storage manager.
@@ -73,7 +74,6 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         this.transformations = new ArrayList<>();
     }
 
-
     public MTPartitionableDataset(MTPartitionableDataset previousPD) {
         if (previousPD == null)
             throw new NullPointerException("The previous partitionable dataset is 'null'");
@@ -84,6 +84,9 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         this.maxPartitionSize = previousPD.maxPartitionSize;
     }
 
+    public MTTaskContext getTc() {
+        return tc;
+    }
 
     @Override
     public PartitionableDataset<T> enableLocalComputation(boolean enable) {
@@ -194,7 +197,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
             throw new NullPointerException("The function code is 'null'");
 
         MTPartitionableDataset<Out> pd = new MTPartitionableDataset<Out>(this);
-        pd.transformations.add(new PDMapTransformation<T, Out>(tc, func, maxPartitionSize));
+        pd.transformations.add(new PDMapTransformation<>(tc, func, maxPartitionSize));
         return pd;
     }
 
@@ -384,24 +387,33 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
 
         final Map internalFinalResults = new HashMap<>();
 
+        ExecutorService executorDisk = Executors.newSingleThreadExecutor();
+        int toPrefetch = (int) Math.round(maxPartitionSize * 0.2);
+        final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize + toPrefetch);
+        final MTTaskLoadBalancingQueueConnector diskConnector = new MTTaskLoadBalancingQueueConnector(connector);
+        Future diskReader = executorDisk.submit(() -> {
+            while (dsIterator.hasNext()) {
+                T data = dsIterator.next();
+                diskConnector.putValue(data);
+            }
+            diskConnector.signalEndOfStream();
+        });
+
+        // Processing items. Apply each transformation in the
+        // order declared by the programmer.
+        boolean mustBreak = false;
+
         // Iterate over the collection of data.
         while (true) {
             // First buffering items to be processed.
-            final List<T> processingBuffer = new ArrayList<>();
-            while (dsIterator.hasNext()) {
-                if (processingBuffer.size() >= maxPartitionSize)
-                    break;
-                T item = dsIterator.next();
-                processingBuffer.add(item);
-            }
+            ConnectorMessage cm = null;
+            ArrayList<T> processingBuffer = new ArrayList<>();
+            while ((cm = diskConnector.getValue()) != null && processingBuffer.size() < maxPartitionSize)
+                processingBuffer.add((T)cm.getPayload());
             if (processingBuffer.size() == 0)
-                // End. Processed all items.
                 break;
 
-            // Processing items. Apply each transformation in the
-            // order declared by the programmer.
-            boolean mustBreak = false;
-
+            mustBreak = false;
 
             try {
                 tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
@@ -424,6 +436,16 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
                 mustBreak = true;
             if (mustBreak)
                 break;
+        }
+
+        if (!mustBreak) {
+            try {
+                diskReader.get();
+            } catch (Exception e) {
+                throw new RuntimeException("Waiting to read all data", e);
+            }
+        } else {
+            diskReader.cancel(true);
         }
 
         T1 finalRes = action.getFinalResults(storageManager, internalFinalResults);
@@ -462,17 +484,27 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         PDTransformation lastTr = transformations.get(transformations.size() - 1);
         final Map internalFinalResults = new HashMap<>();
         Iterator<T> dsIterator = provider.iterator();
+
+        ExecutorService executorDisk = Executors.newSingleThreadExecutor();
+        int toPrefetch = (int) Math.round(maxPartitionSize * 0.2);
+        final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize + toPrefetch);
+        final MTTaskLoadBalancingQueueConnector diskConnector = new MTTaskLoadBalancingQueueConnector(connector);
+        Future diskReader = executorDisk.submit(() -> {
+            while (dsIterator.hasNext()) {
+                T data = dsIterator.next();
+                diskConnector.putValue(data);
+            }
+            diskConnector.signalEndOfStream();
+        });
+
         // Iterate over the collection of data.
         while (true) {
             // First buffering items to be processed.
-            List processingBuffer = new ArrayList(maxPartitionSize);
-            while (dsIterator.hasNext()) {
-                if (processingBuffer.size() >= maxPartitionSize)
-                    break;
-                processingBuffer.add(dsIterator.next());
-            }
+            ConnectorMessage cm = null;
+            ArrayList<T> processingBuffer = new ArrayList<>();
+            while ((cm = diskConnector.getValue()) != null && processingBuffer.size() < maxPartitionSize)
+                processingBuffer.add((T)cm.getPayload());
             if (processingBuffer.size() == 0)
-                // End. Processed all items.
                 break;
 
             // Processing items. Apply each transformation in the
@@ -490,6 +522,12 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
                 throw new RuntimeException("Executing computeIntermediateResults()", e);
             }
 
+        }
+
+        try {
+            diskReader.get();
+        } catch (Exception e) {
+            throw new RuntimeException("Waiting to read all data", e);
         }
 
         PDResultsStorageIteratorProvider itProvider = lastTr.getFinalResults(internalFinalResults);

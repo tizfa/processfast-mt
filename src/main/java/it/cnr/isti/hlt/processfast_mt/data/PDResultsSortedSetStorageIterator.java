@@ -34,8 +34,7 @@ public class PDResultsSortedSetStorageIterator<T extends Serializable> implement
 
     @Override
     public boolean hasNext() {
-        if ((readIdx + curIdx) >= storageSize) return false;
-        else return true;
+        return (readIdx + curIdx) < storageSize;
     }
 
     @Override
