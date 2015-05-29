@@ -30,8 +30,8 @@ import it.cnr.isti.hlt.processfast_mt.data.PDRamResultsStorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDResultsStorageManagerProvider
 
 /**
- * A Processfast runtime implementation based on Groovy
- * GPars library.
+ * A Processfast runtime implementation which exploits multithreading
+ * while executing the programs.
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0

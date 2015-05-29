@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>it.cnr.isti.hlt</groupId>
-    <artifactId>processfast-java8</artifactId>
+    <artifactId>processfast-mt</artifactId>
 
     <!-- ********** CHANGE THESE PROPERTIES WHEN UPDATE TO A NEW SOFTWARE VERSION.
         IMPORTANT: IN DEVEL LEAVE "-SNAPSHOT" AT THE END OF VERSION. MAVEN WILL THREAT
@@ -33,7 +33,7 @@
 
     <packaging>jar</packaging>
 
-    <name>processfast-java8</name>
+    <name>processfast-mt</name>
     <url>http://maven.apache.org</url>
 
     <properties>
@@ -61,10 +61,10 @@
                 <!-- Specifies the build profile id, which is used to find out the correct
                     properties file. -->
                 <build.profile.id>devel</build.profile.id>
-                <processfast-gpars.build.generateversion>${project.version}</processfast-gpars.build.generateversion>
-                <processfast-gpars.build.finalname>
-                    ${project.name}-${processfast-gpars.build.generateversion}.${timestamp}
-                </processfast-gpars.build.finalname>
+                <processfast-mt.build.generateversion>${project.version}</processfast-mt.build.generateversion>
+                <processfast-mt.build.finalname>
+                    ${project.name}-${processfast-mt.build.generateversion}.${timestamp}
+                </processfast-mt.build.finalname>
             </properties>
 
         </profile>
@@ -75,15 +75,15 @@
                     properties file. This is not actually necessary for this example, but it
                     can be used for other purposes. -->
                 <build.profile.id>release</build.profile.id>
-                <processfast-gpars.build.generateversion>${project.version}</processfast-gpars.build.generateversion>
-                <processfast-gpars.build.finalname>${project.name}-${processfast-gpars.build.generateversion}
-                </processfast-gpars.build.finalname>
+                <processfast-mt.build.generateversion>${project.version}</processfast-mt.build.generateversion>
+                <processfast-mt.build.finalname>${project.name}-${processfast-mt.build.generateversion}
+                </processfast-mt.build.finalname>
             </properties>
         </profile>
     </profiles>
 
     <build>
-        <finalName>${processfast-gpars.build.finalname}</finalName>
+        <finalName>${processfast-mt.build.finalname}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -107,7 +107,7 @@
 
                 <configuration>
                     <!-- that's the default value, you don't have to set it -->
-                    <prefix>processfast-gpars</prefix>
+                    <prefix>processfast-mt</prefix>
 
                     <!-- that's the default value -->
                     <dateFormat>ddMMyyyy'.'HHmmss</dateFormat>
@@ -129,7 +129,7 @@
             </plugin>
             <!-- END OF GIT COMMIT ID PLUGIN CONFIGURATION -->
 
-            <!-- Used to build a bundle containing the code of processfast-gpars and all
+            <!-- Used to build a bundle containing the code of processfast-mt and all
                 its library dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -138,7 +138,7 @@
                 <configuration>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <finalName>
-                        ${processfast-gpars.build.finalname}-bundle
+                        ${processfast-mt.build.finalname}-bundle
                     </finalName>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
