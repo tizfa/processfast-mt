@@ -24,9 +24,7 @@ import it.cnr.isti.hlt.processfast.connector.TaskConnectorManager
 import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector
 import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
 import it.cnr.isti.hlt.processfast_mt.connector.MTBroadcastQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.MTSingleValueConnector
 import it.cnr.isti.hlt.processfast_mt.connector.MTTaskBroadcastQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.MTTaskSingleValueConnector
 
 /**
  * A GPars connector manager to be used by running tasks.
@@ -89,10 +87,6 @@ class MTTaskConnectorManager implements TaskConnectorManager {
             MTTaskLoadBalancingQueueConnector lbc = new MTTaskLoadBalancingQueueConnector(ci.connector)
             taskConnectorsReader.put(connectorName, lbc)
             taskConnectorsWriter.put(connectorName, lbc)
-        } else if (ci.connector instanceof MTSingleValueConnector) {
-            MTTaskSingleValueConnector svc = new MTTaskSingleValueConnector(ci.connector)
-            taskConnectorsReader.put(connectorName, svc)
-            taskConnectorsWriter.put(connectorName, svc)
         } else
             throw new RuntimeException("Bug in code. The connector type ${ci.connector.class.name} is not handled!")
     }

@@ -18,6 +18,7 @@
 
 package it.cnr.isti.hlt.processfast_mt.connector
 
+import groovy.transform.CompileStatic
 import groovyx.gpars.dataflow.DataflowBroadcast
 import groovyx.gpars.dataflow.DataflowReadChannel
 import groovyx.gpars.dataflow.DataflowVariable
@@ -34,6 +35,7 @@ import it.cnr.isti.hlt.processfast.exception.ConnectorIllegalOperationException
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
+@CompileStatic
 class MTBroadcastQueueConnector extends MTConnector {
 
     /**
@@ -101,7 +103,7 @@ class MTBroadcastQueueConnector extends MTConnector {
         // Wake up sender.
         notifyAll()
 
-        return msg
+        return (ConnectorMessage) msg
     }
 
     synchronized void putValue(MTConnectorMessage v) {
@@ -154,6 +156,7 @@ class MTBroadcastQueueConnector extends MTConnector {
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
+@CompileStatic
 class MTTaskBroadcastQueueConnector implements Connector {
 
     /**
@@ -211,7 +214,7 @@ class MTTaskBroadcastQueueConnector implements Connector {
 
         def msg = new MTConnectorMessage(v, new DataflowVariable())
         sharedConnector.putValue(msg)
-        return MTDataflowVariableValuePromise(msg.replyTo)
+        return new MTDataflowVariableValuePromise(msg.replyTo)
     }
 
     @Override

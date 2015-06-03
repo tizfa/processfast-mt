@@ -18,12 +18,14 @@
 
 package it.cnr.isti.hlt.processfast_mt.connector
 
+import groovy.transform.CompileStatic
 import groovyx.gpars.dataflow.DataflowVariable
 import it.cnr.isti.hlt.processfast.connector.ConnectorMessage
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
+@CompileStatic
 class MTConnectorMessage implements ConnectorMessage {
 
     final Serializable payload

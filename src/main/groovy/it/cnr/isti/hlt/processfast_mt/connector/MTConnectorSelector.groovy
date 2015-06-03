@@ -18,9 +18,12 @@
 
 package it.cnr.isti.hlt.processfast_mt.connector
 
+import groovy.transform.CompileStatic
+
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
+@CompileStatic
 class MTConnectorSelector {
     MTConnectorSelector() {
     }

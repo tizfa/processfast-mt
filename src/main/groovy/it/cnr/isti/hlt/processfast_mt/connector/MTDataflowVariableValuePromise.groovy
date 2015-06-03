@@ -18,6 +18,7 @@
 
 package it.cnr.isti.hlt.processfast_mt.connector
 
+import groovy.transform.CompileStatic
 import groovyx.gpars.dataflow.DataflowVariable
 import it.cnr.isti.hlt.processfast.connector.ValuePromise
 
@@ -27,6 +28,7 @@ import it.cnr.isti.hlt.processfast.connector.ValuePromise
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
+@CompileStatic
 class MTDataflowVariableValuePromise implements ValuePromise<Serializable> {
 
     /**

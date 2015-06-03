@@ -34,16 +34,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
 
         Stream<Pair<K, V>> source = src;
         Map<K, V> res = (Map) source.collect(Collectors.groupingBy((Pair<K, V> item) -> item.getV1(), new PDFunctionCollector(tdc, code)));
-        final ArrayList<Pair<K, V>> values = new ArrayList<Pair<K, V>>();
-        /*Iterator<Map.Entry<K, V>> it = res.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<K, V> node = it.next();
-            assert(node.getKey() != null);
-            assert(node.getValue() != null);
-            values.add(new Pair<K, V>(node.getKey(), node.getValue()));
-        }
-        return values.parallelStream();*/
-
+        final ArrayList<Pair<K, V>> values = new ArrayList<Pair<K, V>>(res.size());
         res.entrySet().stream().forEach(node->{
             values.add(new Pair<>(node.getKey(), node.getValue()));
         });
@@ -66,7 +57,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
         final PDResultsMapStorage<K, V> st = storage;
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
         Collection<Pair<K, V>> c = (Collection) src.collect(Collectors.toList());
-        c.stream().forEach(item->{
+        c.stream().forEach(item -> {
             V curVal = item.getV2();
             V storedValue = st.get(item.getV1());
             if (storedValue != null) {

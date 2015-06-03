@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A RAM implementation of a PD results map storage.
@@ -15,19 +16,17 @@ import java.util.Map;
  */
 public class PDRamResultsMapStorage<K extends Serializable, V extends Serializable> implements PDResultsMapStorage<K, V> {
     public PDRamResultsMapStorage(String storageID) {
-        this(storageID, 10000, 0.3f);
-    }
-
-    public PDRamResultsMapStorage(String storageID, int capacity, float loadFactor) {
         if (storageID == null) throw new NullPointerException("The storage ID is 'null'");
         this.storageID = storageID;
-        mapValues = Collections.synchronizedMap(new HashMap<K, V>(capacity, loadFactor));
+        mapValues = new ConcurrentHashMap<K, V>();
     }
+
 
     @Override
     public void remove(K k) {
-        if (k == null) throw new NullPointerException("The specified key is 'null'");
-        mapValues.remove("key_" + k);
+        if (k == null)
+            throw new NullPointerException("The specified key is 'null'");
+        mapValues.remove(k);
     }
 
     @Override
@@ -56,15 +55,11 @@ public class PDRamResultsMapStorage<K extends Serializable, V extends Serializab
 
     @Override
     public boolean containsKey(K k) {
-        return mapValues.containsKey("key_" + k);
+        return mapValues.containsKey(k);
     }
 
     public final String getStorageID() {
         return storageID;
-    }
-
-    public final Map<K, V> getMapValues() {
-        return mapValues;
     }
 
     private final String storageID;

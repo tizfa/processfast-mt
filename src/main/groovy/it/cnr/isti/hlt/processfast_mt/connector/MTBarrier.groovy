@@ -17,12 +17,16 @@
  */
 
 package it.cnr.isti.hlt.processfast_mt.connector
+
+import groovy.transform.CompileStatic
+
 /**
  * A barrier used to synchronize multiple threads on a specific execution point.
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
+@CompileStatic
 class MTBarrier {
 
     /**

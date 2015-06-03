@@ -388,8 +388,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         final Map internalFinalResults = new HashMap<>();
 
         ExecutorService executorDisk = Executors.newSingleThreadExecutor();
-        int toPrefetch = (int) Math.round(maxPartitionSize * 0.2);
-        final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize + toPrefetch);
+        final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize);
         final MTTaskLoadBalancingQueueConnector diskConnector = new MTTaskLoadBalancingQueueConnector(connector);
         Future diskReader = executorDisk.submit(() -> {
             while (dsIterator.hasNext()) {

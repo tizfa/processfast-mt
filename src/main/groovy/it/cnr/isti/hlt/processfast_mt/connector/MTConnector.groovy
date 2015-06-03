@@ -18,6 +18,7 @@
 
 package it.cnr.isti.hlt.processfast_mt.connector
 
+import groovy.transform.CompileStatic
 import it.cnr.isti.hlt.processfast.connector.ConnectorType
 
 /**
@@ -26,6 +27,7 @@ import it.cnr.isti.hlt.processfast.connector.ConnectorType
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
+@CompileStatic
 class MTConnector {
 
     /**

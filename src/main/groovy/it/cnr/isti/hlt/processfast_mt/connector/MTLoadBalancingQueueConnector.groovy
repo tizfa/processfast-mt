@@ -18,6 +18,7 @@
 
 package it.cnr.isti.hlt.processfast_mt.connector
 
+import groovy.transform.CompileStatic
 import groovyx.gpars.dataflow.DataflowQueue
 import groovyx.gpars.dataflow.DataflowVariable
 import it.cnr.isti.hlt.processfast.connector.Connector
@@ -33,6 +34,7 @@ import it.cnr.isti.hlt.processfast.exception.ConnectorIllegalOperationException
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
+@CompileStatic
 class MTLoadBalancingQueueConnector extends MTConnector {
 
     /**
@@ -85,7 +87,7 @@ class MTLoadBalancingQueueConnector extends MTConnector {
             return null
         }
 
-        return msg
+        return (ConnectorMessage) msg
     }
 
     synchronized void putValue(MTConnectorMessage v) {
@@ -115,6 +117,7 @@ class MTLoadBalancingQueueConnector extends MTConnector {
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
+@CompileStatic
 class MTTaskLoadBalancingQueueConnector implements Connector {
 
     /**
@@ -154,9 +157,9 @@ class MTTaskLoadBalancingQueueConnector implements Connector {
         if (v == null)
             throw new NullPointerException("The specified value is 'null'")
 
-        def msg = new MTConnectorMessage(v, new DataflowVariable())
+        MTConnectorMessage msg = new MTConnectorMessage(v, new DataflowVariable())
         sharedConnector.putValue(msg)
-        return MTDataflowVariableValuePromise(msg.replyTo)
+        return new MTDataflowVariableValuePromise(msg.replyTo)
     }
 
     @Override

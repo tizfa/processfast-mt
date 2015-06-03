@@ -31,7 +31,6 @@ import it.cnr.isti.hlt.processfast.utils.Pair
 import it.cnr.isti.hlt.processfast_mt.connector.MTBarrier
 import it.cnr.isti.hlt.processfast_mt.connector.MTBroadcastQueueConnector
 import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector
-import it.cnr.isti.hlt.processfast_mt.connector.MTSingleValueConnector
 import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
 import it.cnr.isti.hlt.processfast_mt.exception.MTTaskException
 
@@ -590,9 +589,6 @@ class MTProgramOrchestrator {
         tasksSet.connectorsDeclared.each { String connectorName, ConnectorType connectorType ->
             int connectorSize = tasksSet.connectorsSizeDeclared.get(connectorName)
             switch (connectorType) {
-                case ConnectorType.SINGLE_VALUE:
-                    runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new MTSingleValueConnector()))
-                    break
                 case ConnectorType.LOAD_BALANCING_QUEUE:
                     runningTasksSet.connectors.put(connectorName, new ConnectorInfo(connector: new MTLoadBalancingQueueConnector(connectorSize)))
                     break
