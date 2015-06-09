@@ -19,8 +19,12 @@
 package it.cnr.isti.hlt.processfast_mt.core
 
 import groovy.transform.CompileStatic
+import it.cnr.isti.hlt.processfast.connector.ValuePromise
 import it.cnr.isti.hlt.processfast.core.LogManager
 import it.cnr.isti.hlt.processfast.core.SystemContext
+import it.cnr.isti.hlt.processfast.data.AtomicGetOperationsSet
+import it.cnr.isti.hlt.processfast.data.AtomicOperationsSet
+import it.cnr.isti.hlt.processfast.data.ReadableDictionary
 import it.cnr.isti.hlt.processfast.data.StorageManager
 
 /**
@@ -50,5 +54,25 @@ class MTSystemContext implements SystemContext {
     @Override
     StorageManager getStorageManager() {
         return runtime.getStorageManager()
+    }
+
+    @Override
+    ValuePromise<Void> atomic(String criticalSectionName, ReadableDictionary inputData, AtomicOperationsSet operations) {
+        return null
+    }
+
+    @Override
+    ValuePromise<Void> atomic(String criticalSectionName, AtomicOperationsSet operations) {
+        return null
+    }
+
+    @Override
+    ValuePromise<ReadableDictionary> atomicGet(String criticalSectionName, ReadableDictionary inputData, AtomicGetOperationsSet operations) {
+        return null
+    }
+
+    @Override
+    ValuePromise<ReadableDictionary> atomicGet(String criticalSectionName, AtomicGetOperationsSet operations) {
+        return null
     }
 }
