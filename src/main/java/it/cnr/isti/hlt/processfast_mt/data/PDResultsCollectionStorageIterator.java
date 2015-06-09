@@ -50,7 +50,7 @@ public class PDResultsCollectionStorageIterator<T extends Serializable> implemen
 
 
         Object val = buffer.get(curIdx);
-        curIdx = curIdx++;
+        curIdx++;
         return (T) val;
     }
 

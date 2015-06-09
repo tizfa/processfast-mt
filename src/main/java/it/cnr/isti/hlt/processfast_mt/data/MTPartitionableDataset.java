@@ -43,9 +43,9 @@ import java.util.stream.Stream;
 public class MTPartitionableDataset<T extends Serializable> implements PartitionableDataset<T> {
 
     /**
-     * The maximum size of a partition (max number of items to process in memory). Default is 1000000.
+     * The maximum size of a partition (max number of items to process in memory). Default is 10000.
      */
-    protected int maxPartitionSize = 1000000;
+    protected int maxPartitionSize = 10000;
     /**
      * The set of transformations to apply.
      */
@@ -383,7 +383,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
      */
     protected <T1> T1 computeFinalResults(PDResultsStorageManager storageManager, ImmutableDataSourceIteratorProvider<T> provider, List<PDTransformation> transformations, PDAction<T1> action, CacheType cacheType) {
 
-        Iterator<T> dsIterator = provider.iterator();
+        final Iterator<T> dsIterator = provider.iterator();
 
         final Map internalFinalResults = new HashMap<>();
 
@@ -407,8 +407,9 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
             // First buffering items to be processed.
             ConnectorMessage cm = null;
             ArrayList<T> processingBuffer = new ArrayList<>();
-            while ((cm = diskConnector.getValue()) != null && processingBuffer.size() < maxPartitionSize)
-                processingBuffer.add((T)cm.getPayload());
+            while (processingBuffer.size() < maxPartitionSize && (cm = diskConnector.getValue()) != null) {
+                processingBuffer.add((T) cm.getPayload());
+            }
             if (processingBuffer.size() == 0)
                 break;
 
@@ -500,8 +501,9 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
             // First buffering items to be processed.
             ConnectorMessage cm = null;
             ArrayList<T> processingBuffer = new ArrayList<>();
-            while ((cm = diskConnector.getValue()) != null && processingBuffer.size() < maxPartitionSize)
-                processingBuffer.add((T)cm.getPayload());
+            while (processingBuffer.size() < maxPartitionSize && (cm = diskConnector.getValue()) != null) {
+                processingBuffer.add((T) cm.getPayload());
+            }
             if (processingBuffer.size() == 0)
                 break;
 

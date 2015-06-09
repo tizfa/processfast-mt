@@ -2,13 +2,14 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PDFunction2;
-import it.cnr.isti.hlt.processfast.data.PDFunctionCollector;
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

@@ -49,6 +49,6 @@ class MTSystemContext implements SystemContext {
 
     @Override
     StorageManager getStorageManager() {
-        return runtime.storageManager
+        return runtime.getStorageManager()
     }
 }

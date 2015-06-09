@@ -26,8 +26,10 @@ import it.cnr.isti.hlt.processfast.core.Task
 import it.cnr.isti.hlt.processfast.core.TaskSet
 import it.cnr.isti.hlt.processfast.data.Dictionary
 import it.cnr.isti.hlt.processfast.data.StorageManager
+import it.cnr.isti.hlt.processfast.data.StorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDRamResultsStorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDResultsStorageManagerProvider
+import it.cnr.isti.hlt.processfast_storage_foundationdb.FoundationDBStorageManagerProvider
 
 /**
  * A Processfast runtime implementation which exploits multithreading
@@ -56,9 +58,10 @@ class MTRuntime implements ProcessfastRuntime {
     LogManager logManager
 
     /**
-     * TODO Add a proper default implementation.
-     * The storage manager available for the runtime.
+     * The storage manager provider available for the runtime.
      */
+    StorageManagerProvider storageManagerProvider
+
     StorageManager storageManager
 
     /**
@@ -69,6 +72,7 @@ class MTRuntime implements ProcessfastRuntime {
     MTRuntime() {
         orchestrator = new MTProgramOrchestrator(this)
         logManager = new SLF4JLogManager()
+        storageManagerProvider = new FoundationDBStorageManagerProvider(null)
     }
 
     /**
@@ -97,6 +101,9 @@ class MTRuntime implements ProcessfastRuntime {
         if (task == null)
             throw new NullPointerException("The specified task code is 'null'")
 
+        // Open storage manager.
+        storageManagerProvider.open();
+
         def ts = createTaskSet()
         ts.task(task).withDataDictionary(dict) { wddi ->
             wddi.dataDictionary
@@ -105,11 +112,26 @@ class MTRuntime implements ProcessfastRuntime {
         }
 
         run(ts)
+
+        // Close storage manager.
+        storageManagerProvider.close()
     }
 
     @Override
     TaskSet createTaskSet() {
         return new MTTaskSet()
+    }
+
+    /**
+     * Get the storage manager associated with this runtime.
+     *
+     * @return The storage manager associated to this runtime.
+     */
+    StorageManager getStorageManager() {
+        if (storageManager == null) {
+            storageManager = storageManagerProvider.getStorageManager("runtime")
+        }
+        storageManager
     }
 
 }
