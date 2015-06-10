@@ -255,7 +255,7 @@
 
         <dependency>
             <groupId>it.cnr.isti.hlt</groupId>
-            <artifactId>processfast-storage-foundationdb</artifactId>
+            <artifactId>processfast-storage-mapdb</artifactId>
             <version>0.9-SNAPSHOT</version>
         </dependency>
 
