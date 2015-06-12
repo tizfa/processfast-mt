@@ -470,7 +470,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         List<PDTransformation> toProcess = new ArrayList<>();
         for (PDBaseTransformation bt : tr)
             toProcess.add((PDTransformation) bt);
-        T1 results = computeFinalResults(storageManager, currentProvider, toProcess, action, CacheType.ON_DISK);
+        T1 results = (T1) computeFinalResults(storageManager, currentProvider, toProcess, action, CacheType.ON_DISK);
 
         // Delete temporary storage manager.
         tc.getRuntime().getPdResultsStorageManagerProvider().deleteStorageManager(storageManager.getStorageManagerID());
