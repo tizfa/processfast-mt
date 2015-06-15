@@ -20,10 +20,11 @@ package it.cnr.isti.hlt.processfast_mt.core
 
 import groovy.transform.CompileStatic
 import it.cnr.isti.hlt.processfast.connector.ValuePromise
+import it.cnr.isti.hlt.processfast.core.AtomicGetOperationsSet
+import it.cnr.isti.hlt.processfast.core.AtomicOperationsSet
 import it.cnr.isti.hlt.processfast.core.LogManager
 import it.cnr.isti.hlt.processfast.core.SystemContext
-import it.cnr.isti.hlt.processfast.data.AtomicGetOperationsSet
-import it.cnr.isti.hlt.processfast.data.AtomicOperationsSet
+
 import it.cnr.isti.hlt.processfast.data.ReadableDictionary
 import it.cnr.isti.hlt.processfast.data.StorageManager
 

@@ -29,7 +29,7 @@ import it.cnr.isti.hlt.processfast.data.StorageManager
 import it.cnr.isti.hlt.processfast.data.StorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDRamResultsStorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDResultsStorageManagerProvider
-import it.cnr.isti.hlt.processfast_storage_foundationdb.FoundationDBStorageManagerProvider
+
 
 /**
  * A Processfast runtime implementation which exploits multithreading
@@ -60,9 +60,9 @@ class MTRuntime implements ProcessfastRuntime {
     /**
      * The storage manager provider available for the runtime.
      */
-    StorageManagerProvider storageManagerProvider
-
     StorageManager storageManager
+
+    StorageManagerProvider storageManagerProvider
 
     /**
      * The runtime component that orchestrate and monitor the running application.
@@ -72,7 +72,7 @@ class MTRuntime implements ProcessfastRuntime {
     MTRuntime() {
         orchestrator = new MTProgramOrchestrator(this)
         logManager = new SLF4JLogManager()
-        storageManagerProvider = new FoundationDBStorageManagerProvider(null)
+        storageManagerProvider = new it.cnr.isti.hlt.processfast_storage_mapdb.MapDBRamStorageManagerProvider()
     }
 
     /**
