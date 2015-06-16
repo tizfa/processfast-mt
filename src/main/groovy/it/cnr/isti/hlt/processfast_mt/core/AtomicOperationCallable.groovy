@@ -20,45 +20,42 @@
 package it.cnr.isti.hlt.processfast_mt.core
 
 import groovy.transform.CompileStatic
-import it.cnr.isti.hlt.processfast.connector.FutureValuePromise
-import it.cnr.isti.hlt.processfast.connector.ValuePromise
-import it.cnr.isti.hlt.processfast.core.AtomicGetOperationsSet
 import it.cnr.isti.hlt.processfast.core.AtomicOperationsSet
-import it.cnr.isti.hlt.processfast.core.LogManager
-import it.cnr.isti.hlt.processfast.core.SystemContext
-import it.cnr.isti.hlt.processfast.data.RamDictionary
 import it.cnr.isti.hlt.processfast.data.ReadableDictionary
-import it.cnr.isti.hlt.processfast.data.StorageManager
 
+import java.util.concurrent.Callable
 import java.util.concurrent.locks.ReadWriteLock
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
 @CompileStatic
-class MTSystemContext implements SystemContext {
+class AtomicOperationCallable implements Callable<Void> {
 
-    /**
-     * The GPars runtime to use.
-     */
-    final MTRuntime runtime
+    final String criticalSectionName;
+    final ReadWriteLock lock;
+    final ReadableDictionary inputData
+    final AtomicOperationsSet operations
+    final MTTaskContext tc;
 
 
-    MTSystemContext(MTRuntime runtime) {
-        if (runtime == null)
-            throw new NullPointerException("The GPars runtime is 'null'")
-
-        this.runtime = runtime
+    AtomicOperationCallable(String name, MTTaskContext tc, ReadWriteLock lock, ReadableDictionary inputData, AtomicOperationsSet operations) {
+        this.criticalSectionName = name
+        this.lock = lock;
+        this.inputData = inputData;
+        this.operations = operations;
+        this.tc = tc;
     }
 
     @Override
-    LogManager getLogManager() {
-        return runtime.orchestrator.internalLogManager
-    }
+    Void call() throws Exception {
+        lock.writeLock().lock()
+        try {
+            operations.call(inputData, tc);
+        } finally {
+            lock.writeLock().unlock()
+        }
 
-    @Override
-    StorageManager getStorageManager() {
-        return runtime.getStorageManager()
+        return null
     }
-
 }

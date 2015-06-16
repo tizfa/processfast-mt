@@ -20,7 +20,11 @@
 package it.cnr.isti.hlt.processfast_mt.core
 
 import groovy.transform.CompileStatic
+import it.cnr.isti.hlt.processfast.connector.FutureValuePromise
 import it.cnr.isti.hlt.processfast.connector.TaskConnectorManager
+import it.cnr.isti.hlt.processfast.connector.ValuePromise
+import it.cnr.isti.hlt.processfast.core.AtomicGetOperationsSet
+import it.cnr.isti.hlt.processfast.core.AtomicOperationsSet
 import it.cnr.isti.hlt.processfast.core.CheckpointDataInfo
 import it.cnr.isti.hlt.processfast.core.TaskContext
 import it.cnr.isti.hlt.processfast.data.DataIterable;
@@ -28,10 +32,14 @@ import it.cnr.isti.hlt.processfast.data.Dictionary
 import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset
+import it.cnr.isti.hlt.processfast.data.RamDictionary
+import it.cnr.isti.hlt.processfast.data.ReadableDictionary
 import it.cnr.isti.hlt.processfast.utils.Pair
 import it.cnr.isti.hlt.processfast_mt.connector.MTBarrier
 import it.cnr.isti.hlt.processfast_mt.data.MTPairPartitionableDataset
 import it.cnr.isti.hlt.processfast_mt.data.MTPartitionableDataset
+
+import java.util.concurrent.locks.ReadWriteLock
 
 /**
  * A GPars task context.
@@ -143,5 +151,30 @@ class MTTaskContext extends MTSystemContext implements TaskContext {
     @Override
     TaskConnectorManager getConnectorManager() {
         return cm
+    }
+
+
+    @Override
+    ValuePromise<Void> atomic(String criticalSectionName, ReadableDictionary inputData, AtomicOperationsSet operations) {
+        ReadWriteLock lock = runtime.orchestrator.getLock(criticalSectionName)
+        AtomicOperationCallable c = new AtomicOperationCallable(criticalSectionName, this, lock, inputData, operations)
+        return new FutureValuePromise<Void>(runtime.orchestrator.lockExecutor.submit(c));
+    }
+
+    @Override
+    ValuePromise<Void> atomic(String criticalSectionName, AtomicOperationsSet operations) {
+        return atomic(criticalSectionName, new RamDictionary(), operations);
+    }
+
+    @Override
+    ValuePromise<ReadableDictionary> atomicGet(String criticalSectionName, ReadableDictionary inputData, AtomicGetOperationsSet operations) {
+        ReadWriteLock lock = runtime.orchestrator.getLock(criticalSectionName)
+        AtomicGetOperationCallable c = new AtomicGetOperationCallable(criticalSectionName, this, lock, inputData, operations)
+        return new FutureValuePromise<ReadableDictionary>(runtime.orchestrator.lockExecutor.submit(c));
+    }
+
+    @Override
+    ValuePromise<ReadableDictionary> atomicGet(String criticalSectionName, AtomicGetOperationsSet operations) {
+        return atomicGet(criticalSectionName, new RamDictionary(), operations);
     }
 }

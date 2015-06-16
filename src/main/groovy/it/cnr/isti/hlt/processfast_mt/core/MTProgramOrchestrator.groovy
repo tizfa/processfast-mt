@@ -35,7 +35,11 @@ import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector
 import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector
 import it.cnr.isti.hlt.processfast_mt.exception.MTTaskException
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
  * A program orchestrator based on GPars for a
@@ -109,6 +113,13 @@ class MTProgramOrchestrator {
      */
     ForkJoinPool dataParallelismPool
 
+    /**
+     * The executor handling all operations related to mutual exclusions operations.
+     */
+    ExecutorService lockExecutor;
+
+    private final HashMap<String, ReadWriteLock> atomicLocks;
+
     MTProgramOrchestrator(MTRuntime runtime) {
         if (runtime == null)
             throw new NullPointerException("The specified runtime is 'null'")
@@ -117,6 +128,20 @@ class MTProgramOrchestrator {
         internalLogManager = new MTLogManager(this)
         programStartBarrier = new MTBarrier("_program_start_barrier_")
         systemProcessorsStartBarrier = new MTBarrier("_system_processors_barrier_")
+        atomicLocks = new HashMap<>()
+    }
+
+
+    synchronized ReadWriteLock getLock(String lockName) {
+        if (lockName == null || lockName.empty)
+            throw new IllegalArgumentException("The lock name is 'null' or empty")
+        if (atomicLocks.containsKey(lockName)) {
+            return atomicLocks.get(lockName)
+        } else {
+            atomicLocks.put(lockName, new ReentrantReadWriteLock())
+            return atomicLocks.get(lockName);
+        }
+
     }
 
     private void initGParsTasksGroup() {
@@ -132,6 +157,7 @@ class MTProgramOrchestrator {
         int threadPoolSize = computeNumDeclaredOperators() + 2
         tasksGroup = new DefaultPGroup(threadPoolSize)
         dataParallelismPool = new ForkJoinPool(runtime.numThreadsForDataParallelism)
+        lockExecutor = Executors.newFixedThreadPool(2);
     }
 
     /**

@@ -31,6 +31,8 @@ import it.cnr.isti.hlt.processfast.data.StorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDRamResultsStorageManagerProvider
 import it.cnr.isti.hlt.processfast_mt.data.PDResultsStorageManagerProvider
 
+import java.util.concurrent.locks.ReadWriteLock
+
 
 /**
  * A Processfast runtime implementation which exploits multithreading
@@ -69,6 +71,7 @@ class MTRuntime implements ProcessfastRuntime {
      * The runtime component that orchestrate and monitor the running application.
      */
     final MTProgramOrchestrator orchestrator
+
 
     MTRuntime() {
         orchestrator = new MTProgramOrchestrator(this)

@@ -257,7 +257,7 @@
         <dependency>
             <groupId>it.cnr.isti.hlt</groupId>
             <artifactId>processfast-storage-mapdb</artifactId>
-            <version>0.9-SNAPSHOT</version>
+            <!--<version>0.9-SNAPSHOT</version>-->
         </dependency>
 
         <dependency>
