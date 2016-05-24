@@ -27,6 +27,7 @@ import it.cnr.isti.hlt.processfast.utils.Procedure3;
 import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector;
 import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
+import sun.swing.BakedArrayList;
 
 import java.io.Serializable;
 import java.util.*;
@@ -391,10 +392,12 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         ExecutorService executorDisk = Executors.newSingleThreadExecutor();
         final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize);
         final MTTaskLoadBalancingQueueConnector diskConnector = new MTTaskLoadBalancingQueueConnector(connector);
+        ArrayList<T> valueRead = new ArrayList<>();
         Future diskReader = executorDisk.submit(() -> {
             while (dsIterator.hasNext()) {
                 T data = dsIterator.next();
                 diskConnector.putValue(data);
+                valueRead.add(data);
             }
             diskConnector.signalEndOfStream();
         });
@@ -439,14 +442,16 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
                 break;
         }
 
-        if (!mustBreak) {
-            try {
+        try {
+            if (!mustBreak) {
                 diskReader.get();
-            } catch (Exception e) {
-                throw new RuntimeException("Waiting to read all data", e);
+            } else {
+                diskReader.cancel(true);
             }
-        } else {
-            diskReader.cancel(true);
+        } catch (Exception e) {
+            throw new RuntimeException("Waiting to read all data", e);
+        } finally {
+            executorDisk.shutdownNow();
         }
 
         T1 finalRes = action.getFinalResults(storageManager, internalFinalResults);
@@ -529,6 +534,8 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
             diskReader.get();
         } catch (Exception e) {
             throw new RuntimeException("Waiting to read all data", e);
+        } finally {
+            executorDisk.shutdownNow();
         }
 
         PDResultsStorageIteratorProvider itProvider = lastTr.getFinalResults(internalFinalResults);

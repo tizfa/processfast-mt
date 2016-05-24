@@ -56,7 +56,7 @@ public class PDResultsMapStorageGroupByIterator<K extends Serializable, V extend
         K key = (K) keys.next();
         Collection<V> listStorage = storage.get(key);
         Pair p = new Pair(key, new CollectionDataIterable<V>(listStorage));
-        return null;
+        return p;
     }
 
     private PDResultsMapStorage<K, ArrayList<V>> storage;

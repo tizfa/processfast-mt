@@ -94,8 +94,14 @@ class MTRuntime implements ProcessfastRuntime {
         if (tasksSet == null)
             throw new NullPointerException("The specified tasks set is 'null'")
 
-        // First initialize the program orchestrator.
-        orchestrator.run(tasksSet)
+        // Open storage manager.
+        storageManagerProvider.open();
+        try {
+            // First initialize the program orchestrator.
+            orchestrator.run(tasksSet)
+        } finally {
+            storageManagerProvider.close()
+        }
     }
 
     @Override
@@ -105,8 +111,6 @@ class MTRuntime implements ProcessfastRuntime {
         if (task == null)
             throw new NullPointerException("The specified task code is 'null'")
 
-        // Open storage manager.
-        storageManagerProvider.open();
 
         def ts = createTaskSet()
         ts.task(task).withDataDictionary(dict) { wddi ->
@@ -117,8 +121,6 @@ class MTRuntime implements ProcessfastRuntime {
 
         run(ts)
 
-        // Close storage manager.
-        storageManagerProvider.close()
     }
 
     @Override

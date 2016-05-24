@@ -60,12 +60,16 @@ public class MTPairPartitionableDataset<K extends Serializable, V extends Serial
 
     @Override
     public PairPartitionableDataset<K, DataIterable<V>> groupByKey() {
-        return null;
+        MTPairPartitionableDataset<K, DataIterable<V>> pd = new MTPairPartitionableDataset<>(this);
+        pd.transformations.add(new PDGroupByKeyTransformation<K, V>(tc, maxPartitionSize));
+        return pd;
     }
 
     @Override
     public <T extends Serializable> PairPartitionableDataset<K, Pair<V, T>> join(PairPartitionableDataset<K, T> dataset) {
-        return null;
+        MTPairPartitionableDataset<K, Pair<V, T>> pd = new MTPairPartitionableDataset<>(this);
+        pd.transformations.add(new PDJoinTransformation<K, V, T>(tc, dataset, maxPartitionSize));
+        return pd;
     }
 
     @Override
