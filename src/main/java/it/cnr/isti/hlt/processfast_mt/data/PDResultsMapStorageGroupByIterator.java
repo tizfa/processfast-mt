@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * A PD results map storage iterator suitable fro "groupBy" transformation.
+ * A PD results map storage iterator suitable for "groupBy" transformation.
  *
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
