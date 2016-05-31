@@ -20,6 +20,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import groovy.transform.CompileStatic;
+import it.cnr.isti.hlt.processfast.core.ProcessfastRuntime;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,6 +37,17 @@ import java.util.Random;
  */
 @CompileStatic
 public class PDRamResultsStorageManagerProvider implements PDResultsStorageManagerProvider {
+
+    private ProcessfastRuntime runtime;
+
+    private static final String LOGGER_NAME = "PDRamResultsStorageManagerProvider";
+
+    PDRamResultsStorageManagerProvider(ProcessfastRuntime runtime) {
+        if (runtime == null)
+            throw new NullPointerException("Runtime environment is 'null'");
+        this.runtime = runtime;
+    }
+
     @Override
     public synchronized PDResultsStorageManager createStorageManager(String storageManagerID) {
         if (storageManagerID == null || storageManagerID.isEmpty())
@@ -44,6 +56,7 @@ public class PDRamResultsStorageManagerProvider implements PDResultsStorageManag
         if (storage == null) {
             storage = new PDRamResultsStorageManager(storageManagerID);
             storages.put(storageManagerID, (PDRamResultsStorageManager) storage);
+            runtime.getLogManager().getLogger(LOGGER_NAME).debug("Created storage manager " + storageManagerID);
         }
 
         return storage;
@@ -54,6 +67,7 @@ public class PDRamResultsStorageManagerProvider implements PDResultsStorageManag
         if (storageManagerID == null || storageManagerID.isEmpty())
             throw new IllegalArgumentException("The storage manager ID is 'null' or empty");
         storages.remove(storageManagerID);
+        runtime.getLogManager().getLogger(LOGGER_NAME).debug("Delete storage manager " + storageManagerID);
     }
 
     @Override

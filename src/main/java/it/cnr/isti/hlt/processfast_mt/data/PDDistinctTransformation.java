@@ -44,6 +44,16 @@ public class PDDistinctTransformation<T extends Serializable> implements PDTrans
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return this.maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream source) {
         return source.distinct();
     }
@@ -78,5 +88,5 @@ public class PDDistinctTransformation<T extends Serializable> implements PDTrans
     }
 
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

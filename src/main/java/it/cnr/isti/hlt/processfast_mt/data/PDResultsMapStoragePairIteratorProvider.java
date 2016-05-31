@@ -22,6 +22,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -41,6 +42,36 @@ public class PDResultsMapStoragePairIteratorProvider<K extends Serializable, V e
     @Override
     public Iterator<Pair<K, V>> iterator() {
         return new PDResultsMapStoragePairIterator<K, V>(storage, maxBufferSize);
+    }
+
+    @Override
+    public boolean sizeEnabled() {
+        return true;
+    }
+
+    @Override
+    public long size() {
+        return storage.size();
+    }
+
+    @Override
+    public boolean contains(Pair<K, V> item) {
+        return storage.containsKey(item.getV1());
+    }
+
+    @Override
+    public boolean containsEnabled() {
+        return true;
+    }
+
+    @Override
+    public Collection<Pair<K, V>> take(long startFrom, long numItems) {
+        return null;
+    }
+
+    @Override
+    public boolean takeEnabled() {
+        return false;
     }
 
     public final PDResultsMapStorage<K, V> getStorage() {

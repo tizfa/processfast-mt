@@ -21,13 +21,11 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +56,18 @@ public class PDCollectAction<Out extends Serializable> implements PDAction<Colle
     }
 
     @Override
+    public <T extends Serializable> Collection<Out> computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+        if (outColl == null) {
+            outColl = new ArrayList<>();
+            Iterator<T> it = provider.iterator();
+            while (it.hasNext()) {
+                outColl.add((Out) it.next());
+            }
+        }
+        return outColl;
+    }
+
+    @Override
     public void mergeResults(PDResultsStorageManager storageManager, Collection<Out> src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage<Out> storage = (PDResultsCollectionStorage<Out>) dest.get("storage");
         if (storage == null) {
@@ -74,6 +84,8 @@ public class PDCollectAction<Out extends Serializable> implements PDAction<Colle
     public boolean needMoreResults(Map currentResults) {
         return true;
     }
+
+    private List<Out> outColl;
 
     private final MTTaskContext tc;
 }

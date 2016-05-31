@@ -31,6 +31,11 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public interface PDTransformation extends PDBaseTransformation {
+
+    int getMaxBufferSize();
+
+    void setMaxBufferSize(int maxBufferSize);
+
     /**
      * Apply a specific transformation on source collection.
      *

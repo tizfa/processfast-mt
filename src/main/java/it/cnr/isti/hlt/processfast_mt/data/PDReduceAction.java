@@ -21,6 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast.data.PDFunction2;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
@@ -49,6 +50,11 @@ public class PDReduceAction<Out extends Serializable> implements PDAction<Out> {
     @Override
     public Out getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
         return (Out) internalResults.get("res");
+    }
+
+    @Override
+    public <T extends Serializable> Out computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+        return null;
     }
 
     @Override

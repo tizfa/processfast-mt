@@ -22,14 +22,14 @@ package it.cnr.isti.hlt.processfast_mt.test
 import it.cnr.isti.hlt.processfast.connector.ConnectorCapability
 import it.cnr.isti.hlt.processfast.connector.ConnectorType
 import it.cnr.isti.hlt.processfast.data.RamDictionary
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
 class HelloWorldTest {
     static def main(args) {
-        MTRuntime runtime = new MTRuntime()
+        MTProcessfastRuntime runtime = new MTProcessfastRuntime()
         def ts = runtime.createTaskSet()
 
         ts.onTasksSetInitialization({ sc ->

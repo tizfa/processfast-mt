@@ -25,7 +25,7 @@ import it.cnr.isti.hlt.processfast.core.TaskDataContext
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset
 import it.cnr.isti.hlt.processfast.data.RamDoubleMatrixIteratorProvider
 import it.cnr.isti.hlt.processfast.utils.Pair
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 
 void initMatrices(double[][] matrix1, double[][] matrix2, int numRows1, int numCommon, int numCols2) {
@@ -45,7 +45,7 @@ void initMatrices(double[][] matrix1, double[][] matrix2, int numRows1, int numC
 
 
 @CompileStatic
-def createProgram(MTRuntime runtime) {
+def createProgram(MTProcessfastRuntime runtime) {
 
 // Create main tasks set.
     def ts = runtime.createTaskSet()
@@ -97,7 +97,7 @@ def createProgram(MTRuntime runtime) {
 }
 
 
-MTRuntime runtime = new MTRuntime()
+MTProcessfastRuntime runtime = new MTProcessfastRuntime()
 runtime.numThreadsForDataParallelism = 8
 def ts = createProgram(runtime)
 runtime.run(ts)

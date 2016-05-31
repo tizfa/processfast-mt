@@ -20,7 +20,7 @@
 package it.cnr.isti.hlt.processfast_mt.test
 
 import it.cnr.isti.hlt.processfast.core.TaskContext
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 
 void initMatrices(double[][] matrix1, double[][] matrix2, int numRows1, int numCommon, int numCols2) {
@@ -40,7 +40,7 @@ void initMatrices(double[][] matrix1, double[][] matrix2, int numRows1, int numC
 
 
 @groovy.transform.CompileStatic
-def defineProgram(MTRuntime runtime) {
+def defineProgram(MTProcessfastRuntime runtime) {
     // Create main tasks set.
     def ts = runtime.createTaskSet()
 
@@ -112,6 +112,6 @@ def defineProgram(MTRuntime runtime) {
 }
 
 
-MTRuntime runtime = new MTRuntime()
+MTProcessfastRuntime runtime = new MTProcessfastRuntime()
 def ts = defineProgram(runtime)
 runtime.run(ts)

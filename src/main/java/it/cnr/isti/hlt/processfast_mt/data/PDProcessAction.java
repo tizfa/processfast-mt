@@ -21,6 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast.data.PDProcedure;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
@@ -49,6 +50,11 @@ public class PDProcessAction<Out extends Serializable> implements PDAction<Void>
 
     @Override
     public Void getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
+        return null;
+    }
+
+    @Override
+    public <T extends Serializable> Void computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
         return null;
     }
 

@@ -20,6 +20,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
@@ -47,6 +48,15 @@ public class PDContainsAction<ItemType extends Serializable> implements PDAction
     }
 
     @Override
+    public <T extends Serializable> Boolean computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+        if (!provider.containsEnabled())
+            return null;
+        if (itemContained == null)
+            itemContained = provider.contains((T) item);
+        return itemContained;
+    }
+
+    @Override
     public void mergeResults(PDResultsStorageManager storageManager, Boolean src, Map dest, CacheType cacheType) {
         Boolean cur = (Boolean) dest.get("res");
         if (cur == null)
@@ -62,7 +72,7 @@ public class PDContainsAction<ItemType extends Serializable> implements PDAction
         return !containsItem;
     }
 
-
+    private Boolean itemContained;
     private final MTTaskContext tc;
     private final ItemType item;
 }

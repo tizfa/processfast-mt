@@ -20,7 +20,9 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -28,6 +30,11 @@ import java.util.stream.Stream;
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  */
 public interface PDAction<Out> {
+
+    /**
+     * **************  Operations performed while processing aa data source that need to be transformed before applying this action.
+     */
+
     /**
      * Apply the action on a source collection.
      *
@@ -65,5 +72,20 @@ public interface PDAction<Out> {
      * @return The final results for action caller.
      */
     Out getFinalResults(PDResultsStorageManager storageManager, Map internalResults);
+
+
+    /**
+     * **************  Operations performed while processing aa data source that NOT need to be transformed before applying this action.
+     */
+
+    /**
+     * Compute the action results directly using the definitive data source iterator provider. If the action can not be performed directly,
+     * 'null' will be returned.
+     *
+     * @param provider The data source iterator provider to use.
+     * @param <T>      The item type in the data source.
+     * @return The final results or 'null' if the final results can't be computed directly.
+     */
+    <T extends Serializable> Out computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider);
 }
 

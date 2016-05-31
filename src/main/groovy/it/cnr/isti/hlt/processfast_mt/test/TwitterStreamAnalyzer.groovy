@@ -25,7 +25,7 @@ import it.cnr.isti.hlt.processfast.connector.ConnectorWriter
 import it.cnr.isti.hlt.processfast.core.ProcessfastRuntime
 import it.cnr.isti.hlt.processfast.core.TaskContext
 import it.cnr.isti.hlt.processfast.core.TaskSet
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 import twitter4j.*
 
 /**
@@ -134,7 +134,7 @@ TaskSet createMainTasksSet(ProcessfastRuntime runtime) {
 }
 
 
-MTRuntime runtime = new MTRuntime()
+MTProcessfastRuntime runtime = new MTProcessfastRuntime()
 def ts = createMainTasksSet(runtime)
 runtime.run(ts)
 

@@ -19,21 +19,14 @@
 
 package it.cnr.isti.hlt.processfast_mt.data;
 
-import it.cnr.isti.hlt.processfast.connector.ConnectorMessage;
 import it.cnr.isti.hlt.processfast.core.TaskDataContext;
 import it.cnr.isti.hlt.processfast.data.*;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast.utils.Procedure3;
-import it.cnr.isti.hlt.processfast_mt.connector.MTLoadBalancingQueueConnector;
-import it.cnr.isti.hlt.processfast_mt.connector.MTTaskLoadBalancingQueueConnector;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
-import sun.swing.BakedArrayList;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 /**
@@ -45,9 +38,10 @@ import java.util.stream.Stream;
 public class MTPartitionableDataset<T extends Serializable> implements PartitionableDataset<T> {
 
     /**
-     * The maximum size of a partition (max number of items to process in memory). Default is 10000.
+     * The maximum size of a partition (max number of items to process in memory). Default is 100000.
      */
     protected int maxPartitionSize = 10000;
+
     /**
      * The set of transformations to apply.
      */
@@ -63,6 +57,14 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
 
 
     /**
+     * Used to indicate if a processing phase started in {@link #computeResults(ImmutableDataSourceIteratorProvider, List, PDAction)} or
+     * in {@link #cache(CacheType)} methods must submit the code to be executed to system thread pool (value "true") with method submit() or
+     * assuming that a thread pool is already active and then exploiting it for processing purposes (value "false").
+     */
+    boolean activateSystemThreadPool;
+
+
+    /**
      * Current storage manager.
      */
     //protected PDResultsStorageManager storageManager
@@ -74,6 +76,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         this.tc = tc;
         this.dataSourceIteratorProvider = provider;
         this.transformations = new ArrayList<>();
+        this.activateSystemThreadPool = true;
     }
 
     public MTPartitionableDataset(MTPartitionableDataset previousPD) {
@@ -84,11 +87,13 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         this.tc = previousPD.tc;
         this.dataSourceIteratorProvider = previousPD.dataSourceIteratorProvider;
         this.maxPartitionSize = previousPD.maxPartitionSize;
+        this.activateSystemThreadPool = previousPD.activateSystemThreadPool;
     }
 
     public MTTaskContext getTc() {
         return tc;
     }
+
 
     @Override
     public PartitionableDataset<T> enableLocalComputation(boolean enable) {
@@ -178,18 +183,42 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
     }
 
 
-    @Override
-    public PartitionableDataset<T> cache(CacheType cacheType) {
-        if (cacheType == null)
-            throw new NullPointerException("The cache type is 'null'");
+    protected PartitionableDataset<T> cacheInternal(CacheType cacheType, boolean activateSystemThreadPool) {
         if (transformations.size() != 0) {
             List<List<PDBaseTransformation>> transformationsSplits = new ArrayList<>();
             List<ImmutableDataSourceIteratorProvider> providerToDelete = new ArrayList<>();
             PDResultsStorageManager storageManager = tc.getRuntime().getPdResultsStorageManagerProvider().createStorageManager(tc.getRuntime().getPdResultsStorageManagerProvider().generateUniqueStorageManagerID());
             ImmutableDataSourceIteratorProvider computedProvider = computeAllIntermediateResults(storageManager, dataSourceIteratorProvider, transformations, providerToDelete, transformationsSplits, cacheType, true);
-            return new MTPartitionableDataset<T>(tc, computedProvider);
+            MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(tc, computedProvider);
+            pd.maxPartitionSize = maxPartitionSize;
+            pd.activateSystemThreadPool = activateSystemThreadPool;
+            // Delete temporary storage manager.
+            tc.getRuntime().getPdResultsStorageManagerProvider().deleteStorageManager(storageManager.getStorageManagerID());
+            return pd;
         } else {
-            return new MTPartitionableDataset<T>(tc, dataSourceIteratorProvider);
+            MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(tc, dataSourceIteratorProvider);
+            pd.activateSystemThreadPool = activateSystemThreadPool;
+            pd.maxPartitionSize = maxPartitionSize;
+            return pd;
+        }
+    }
+
+
+    @Override
+    public PartitionableDataset<T> cache(CacheType cacheType) {
+        if (cacheType == null)
+            throw new NullPointerException("The cache type is 'null'");
+        try {
+            if (activateSystemThreadPool) {
+                final PartitionableDataset<T> pd = tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
+                    return cacheInternal(cacheType, true);
+                }).get();
+                return pd;
+            } else {
+                return cacheInternal(cacheType, false);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Caching results", e);
         }
     }
 
@@ -389,18 +418,6 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
 
         final Map internalFinalResults = new HashMap<>();
 
-        ExecutorService executorDisk = Executors.newSingleThreadExecutor();
-        final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize);
-        final MTTaskLoadBalancingQueueConnector diskConnector = new MTTaskLoadBalancingQueueConnector(connector);
-        ArrayList<T> valueRead = new ArrayList<>();
-        Future diskReader = executorDisk.submit(() -> {
-            while (dsIterator.hasNext()) {
-                T data = dsIterator.next();
-                diskConnector.putValue(data);
-                valueRead.add(data);
-            }
-            diskConnector.signalEndOfStream();
-        });
 
         // Processing items. Apply each transformation in the
         // order declared by the programmer.
@@ -409,10 +426,9 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         // Iterate over the collection of data.
         while (true) {
             // First buffering items to be processed.
-            ConnectorMessage cm = null;
             ArrayList<T> processingBuffer = new ArrayList<>();
-            while (processingBuffer.size() < maxPartitionSize && (cm = diskConnector.getValue()) != null) {
-                processingBuffer.add((T) cm.getPayload());
+            while (processingBuffer.size() < maxPartitionSize && dsIterator.hasNext()) {
+                processingBuffer.add((T) dsIterator.next());
             }
             if (processingBuffer.size() == 0)
                 break;
@@ -420,18 +436,19 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
             mustBreak = false;
 
             try {
-                tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
-                    Stream stream = processingBuffer.parallelStream();
-                    for (PDTransformation t : transformations) {
-                        stream = t.applyTransformation(stream);
-                    }
+                //tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
+                Stream stream = processingBuffer.parallelStream();
+                for (PDTransformation t : transformations) {
+                    t.setMaxBufferSize(maxPartitionSize);
+                    stream = t.applyTransformation(stream);
+                }
 
-                    // Apply final action.
-                    T1 partialResults = action.applyAction(stream);
+                // Apply final action.
+                T1 partialResults = action.applyAction(stream);
 
-                    // Merge partial results.
-                    action.mergeResults(storageManager, partialResults, internalFinalResults, cacheType);
-                }).get();
+                // Merge partial results.
+                action.mergeResults(storageManager, partialResults, internalFinalResults, cacheType);
+                //}).get();
             } catch (Exception e) {
                 throw new RuntimeException("Executing computeFinalResults()", e);
             }
@@ -442,28 +459,14 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
                 break;
         }
 
-        try {
-            if (!mustBreak) {
-                diskReader.get();
-            } else {
-                diskReader.cancel(true);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Waiting to read all data", e);
-        } finally {
-            executorDisk.shutdownNow();
-        }
-
         T1 finalRes = action.getFinalResults(storageManager, internalFinalResults);
         internalFinalResults.clear();
         return finalRes;
     }
 
-
-    protected <T1> T1 computeResults(ImmutableDataSourceIteratorProvider<T> provider, List<PDBaseTransformation> transformations, PDAction<T1> action) {
+    protected <T1> T1 computeResults_internalStreaming(ImmutableDataSourceIteratorProvider<T> provider, List<PDBaseTransformation> transformations, PDAction<T1> action) {
         List<List<PDBaseTransformation>> transformationsSplits = new ArrayList<>();
         List<ImmutableDataSourceIteratorProvider> providerToDelete = new ArrayList<>();
-
         // Create new temporary storage manager.
         PDResultsStorageManager storageManager = tc.getRuntime().getPdResultsStorageManagerProvider().createStorageManager(tc.getRuntime().getPdResultsStorageManagerProvider().generateUniqueStorageManagerID());
         tc.getRuntime().getLogManager().getLogger("DEBUG").debug("Created storage manager: ${storageManager}");
@@ -476,14 +479,41 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         List<PDTransformation> toProcess = new ArrayList<>();
         for (PDBaseTransformation bt : tr)
             toProcess.add((PDTransformation) bt);
-        T1 results = (T1) computeFinalResults(storageManager, currentProvider, toProcess, action, CacheType.ON_DISK);
+        T1 res = (T1) computeFinalResults(storageManager, currentProvider, toProcess, action, CacheType.ON_DISK);
 
         // Delete temporary storage manager.
         tc.getRuntime().getPdResultsStorageManagerProvider().deleteStorageManager(storageManager.getStorageManagerID());
-        tc.getRuntime().getLogManager().getLogger("DEBUG").debug("Deleted storage manager: ${storageManager}");
-
-        return results;
+        return res;
     }
+
+
+    protected <T1> T1 computeResults_internal(ImmutableDataSourceIteratorProvider<T> provider, List<PDBaseTransformation> transformations, PDAction<T1> action) {
+        if (transformations.size() > 0) {
+            return computeResults_internalStreaming(provider, transformations, action);
+        } else {
+            T1 res = action.computeFinalResultsDirectlyOnDataSourceIteratorProvider(provider);
+            if (res == null)
+                res = computeResults_internalStreaming(provider, transformations, action);
+            return res;
+        }
+    }
+
+
+    protected <T1> T1 computeResults(ImmutableDataSourceIteratorProvider<T> provider, List<PDBaseTransformation> transformations, PDAction<T1> action) {
+        try {
+            if (activateSystemThreadPool) {
+                final T1 results = tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
+                    return computeResults_internal(provider, transformations, action);
+                }).get();
+                return results;
+            } else {
+                return computeResults_internal(provider, transformations, action);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Computing results", e);
+        }
+    }
+
 
 
     protected ImmutableDataSourceIteratorProvider computeIntermediateResults(PDResultsStorageManager storageManager, ImmutableDataSourceIteratorProvider<T> provider, List<PDTransformation> transformations, CacheType cacheType) {
@@ -491,24 +521,13 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         final Map internalFinalResults = new HashMap<>();
         Iterator<T> dsIterator = provider.iterator();
 
-        ExecutorService executorDisk = Executors.newSingleThreadExecutor();
-        final MTLoadBalancingQueueConnector connector = new MTLoadBalancingQueueConnector(maxPartitionSize);
-        final MTTaskLoadBalancingQueueConnector diskConnector = new MTTaskLoadBalancingQueueConnector(connector);
-        Future diskReader = executorDisk.submit(() -> {
-            while (dsIterator.hasNext()) {
-                T data = dsIterator.next();
-                diskConnector.putValue(data);
-            }
-            diskConnector.signalEndOfStream();
-        });
-
         // Iterate over the collection of data.
         while (true) {
             // First buffering items to be processed.
-            ConnectorMessage cm = null;
             ArrayList<T> processingBuffer = new ArrayList<>();
-            while (processingBuffer.size() < maxPartitionSize && (cm = diskConnector.getValue()) != null) {
-                processingBuffer.add((T) cm.getPayload());
+
+            while (processingBuffer.size() < maxPartitionSize && dsIterator.hasNext()) {
+                processingBuffer.add((T) dsIterator.next());
             }
             if (processingBuffer.size() == 0)
                 break;
@@ -516,30 +535,25 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
             // Processing items. Apply each transformation in the
             // order declared by the programmer.
             try {
-                tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
-                    Stream stream = processingBuffer.parallelStream();
-                    for (PDTransformation t : transformations) {
-                        stream = t.applyTransformation(stream);
-                    }
+                //tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
+                Stream stream = processingBuffer.parallelStream();
+                for (PDTransformation t : transformations) {
+                    t.setMaxBufferSize(maxPartitionSize);
+                    stream = t.applyTransformation(stream);
+                }
 
-                    lastTr.mergeResults(storageManager, stream, internalFinalResults, cacheType);
-                }).get();
+                lastTr.setMaxBufferSize(maxPartitionSize);
+                lastTr.mergeResults(storageManager, stream, internalFinalResults, cacheType);
+                //}).get();
             } catch (Exception e) {
                 throw new RuntimeException("Executing computeIntermediateResults()", e);
             }
 
         }
 
-        try {
-            diskReader.get();
-        } catch (Exception e) {
-            throw new RuntimeException("Waiting to read all data", e);
-        } finally {
-            executorDisk.shutdownNow();
-        }
-
         PDResultsStorageIteratorProvider itProvider = lastTr.getFinalResults(internalFinalResults);
         internalFinalResults.clear();
         return itProvider;
     }
+
 }

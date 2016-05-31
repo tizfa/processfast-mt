@@ -20,7 +20,9 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -31,6 +33,9 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public class PDCountAction implements PDAction<Long> {
+
+    private long computedCount = -1;
+
     @Override
     public Long applyAction(Stream source) {
         return source.count();
@@ -39,6 +44,15 @@ public class PDCountAction implements PDAction<Long> {
     @Override
     public Long getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
         return (long) internalResults.get("res");
+    }
+
+    @Override
+    public <T extends Serializable> Long computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+        if (!provider.sizeEnabled())
+            return null;
+        if (computedCount == -1)
+            computedCount = provider.size();
+        return computedCount;
     }
 
     @Override

@@ -47,6 +47,16 @@ public class PDGroupByTransformation<T extends Serializable, K extends Serializa
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream source) {
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
         Map grouped = (Map) source.collect(Collectors.groupingBy(item -> code.call(tdc, (T) item)));
@@ -93,5 +103,5 @@ public class PDGroupByTransformation<T extends Serializable, K extends Serializa
 
     private final PDFunction<T, K> code;
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

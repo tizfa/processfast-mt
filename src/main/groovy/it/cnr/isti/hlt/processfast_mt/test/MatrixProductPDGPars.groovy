@@ -21,7 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.test
 
 import groovyx.gpars.GParsPool
 import it.cnr.isti.hlt.processfast.core.TaskContext
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 
 void initMatrices(double[][] matrix1, double[][] matrix2, int numRows1, int numCommon, int numCols2) {
@@ -51,7 +51,7 @@ def matrixMultiplication(int i, double[][] m1, double[][] m2, double[][] res) {
 }
 
 //@CompileStatic
-def defineProgram(MTRuntime runtime) {
+def defineProgram(MTProcessfastRuntime runtime) {
 // Create main tasks set.
     def ts = runtime.createTaskSet()
 
@@ -98,7 +98,7 @@ def defineProgram(MTRuntime runtime) {
     ts
 }
 
-MTRuntime runtime = new MTRuntime()
+MTProcessfastRuntime runtime = new MTProcessfastRuntime()
 runtime.numThreadsForDataParallelism = 5
 def ts = defineProgram(runtime)
 runtime.run(ts)

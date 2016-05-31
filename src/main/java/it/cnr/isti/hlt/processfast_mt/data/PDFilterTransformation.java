@@ -45,6 +45,16 @@ public class PDFilterTransformation<T> implements PDTransformation {
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream source) {
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
         return source.filter(item -> code.call(tdc, (T) item));
@@ -81,5 +91,5 @@ public class PDFilterTransformation<T> implements PDTransformation {
 
     private final PDFunction<T, Boolean> code;
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

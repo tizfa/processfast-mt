@@ -46,6 +46,16 @@ public class PDMapTransformation<T, Out> implements PDTransformation {
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream source) {
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
         return source.map(item -> code.call(tdc, (T) item));
@@ -82,5 +92,5 @@ public class PDMapTransformation<T, Out> implements PDTransformation {
 
     private final PDFunction<T, Out> code;
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

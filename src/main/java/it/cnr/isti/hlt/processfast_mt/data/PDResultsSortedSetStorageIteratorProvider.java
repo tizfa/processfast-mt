@@ -20,6 +20,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -38,6 +39,36 @@ public class PDResultsSortedSetStorageIteratorProvider<T extends Serializable> i
     @Override
     public Iterator<T> iterator() {
         return new PDResultsSortedSetStorageIterator<T>(storage, maxBufferSize);
+    }
+
+    @Override
+    public boolean sizeEnabled() {
+        return true;
+    }
+
+    @Override
+    public long size() {
+        return storage.size();
+    }
+
+    @Override
+    public boolean contains(T item) {
+        return false;
+    }
+
+    @Override
+    public boolean containsEnabled() {
+        return false;
+    }
+
+    @Override
+    public Collection<T> take(long startFrom, long numItems) {
+        return null;
+    }
+
+    @Override
+    public boolean takeEnabled() {
+        return false;
     }
 
     public final PDResultsSortedSetStorage getStorage() {

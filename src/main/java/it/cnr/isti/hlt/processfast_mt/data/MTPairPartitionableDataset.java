@@ -79,14 +79,53 @@ public class MTPairPartitionableDataset<K extends Serializable, V extends Serial
     }
 
     @Override
+    public PartitionableDataset<V> values() {
+        return map((ctx, v) -> {
+            return v.getV2();
+        });
+    }
+
+    @Override
+    public <T extends Serializable> PairPartitionableDataset<K, T> mapValues(PDFunction<V, T> func) {
+        return mapPair((ctx, v) -> {
+            T ret = func.call(ctx, v.getV2());
+            return new Pair<K, T>(v.getV1(), ret);
+        });
+    }
+
+    @Override
     public PairPartitionableDataset<K, V> cache(CacheType cacheType) {
         MTPartitionableDataset cached = (MTPartitionableDataset) super.cache(cacheType);
-        return new MTPairPartitionableDataset<K, V>(cached.getTc(), cached.dataSourceIteratorProvider);
+        MTPairPartitionableDataset<K, V> ret = new MTPairPartitionableDataset<K, V>(cached.getTc(), cached.dataSourceIteratorProvider);
+        ret.maxPartitionSize = cached.maxPartitionSize;
+        ret.activateSystemThreadPool = cached.activateSystemThreadPool;
+        return ret;
     }
 
     @Override
     public PairPartitionableDataset<K, V> saveOnStorageManager(Procedure3<TaskDataContext, StorageManager, Pair<K, V>> func) {
         super.saveOnStorageManager(func);
         return this;
+    }
+
+    @Override
+    public PairPartitionableDataset<K, V> distinct() {
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<K, V>(this);
+        pd.transformations.add(new PDDistinctTransformation<Pair<K, V>>(tc, maxPartitionSize));
+        return pd;
+    }
+
+    @Override
+    public PairPartitionableDataset<K, V> withPartitionSize(int partitionSize) {
+        if (partitionSize < 1)
+            throw new IllegalArgumentException("The partition size is invalid: ${partitionSize}");
+
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<K, V>(this);
+        PDCustomizeTransformation ct = new PDCustomizeTransformation();
+        ct.setCustomizationCode((MTPartitionableDataset pad) -> {
+            pad.maxPartitionSize = partitionSize;
+        });
+        pd.transformations.add(ct);
+        return pd;
     }
 }

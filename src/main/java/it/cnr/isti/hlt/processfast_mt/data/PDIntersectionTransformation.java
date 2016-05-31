@@ -43,6 +43,17 @@ public class PDIntersectionTransformation<T extends Serializable> implements PDT
         if (toIntersect == null) throw new NullPointerException("The partitionable dataset to intersect is 'null'");
         this.tc = tc;
         this.toIntersect = toIntersect;
+        this.toIntersect.activateSystemThreadPool = false;
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
         this.maxBufferSize = maxBufferSize;
     }
 
@@ -76,6 +87,7 @@ public class PDIntersectionTransformation<T extends Serializable> implements PDT
 
     @Override
     public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+        this.toIntersect.activateSystemThreadPool = true;
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsCollectionStorageIteratorProvider((PDResultsCollectionStorage<T>) storage, maxBufferSize);
@@ -88,5 +100,5 @@ public class PDIntersectionTransformation<T extends Serializable> implements PDT
 
     private final MTTaskContext tc;
     private final MTPartitionableDataset<T> toIntersect;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

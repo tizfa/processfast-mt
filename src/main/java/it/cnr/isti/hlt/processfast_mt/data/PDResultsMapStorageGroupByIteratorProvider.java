@@ -23,6 +23,8 @@ import it.cnr.isti.hlt.processfast.data.DataIterable;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -41,6 +43,47 @@ public class PDResultsMapStorageGroupByIteratorProvider<K extends Serializable, 
     @Override
     public Iterator<Pair<K, DataIterable<V>>> iterator() {
         return new PDResultsMapStorageGroupByIterator<K, V>(storage, maxBufferSize);
+    }
+
+    @Override
+    public boolean sizeEnabled() {
+        return true;
+    }
+
+    @Override
+    public long size() {
+        return storage.size();
+    }
+
+    @Override
+    public boolean contains(Pair<K, DataIterable<V>> item) {
+        return storage.containsKey(item.getV1());
+    }
+
+    @Override
+    public boolean containsEnabled() {
+        return true;
+    }
+
+    @Override
+    public Collection<Pair<K, DataIterable<V>>> take(long startFrom, long numItems) {
+        Iterator<Pair<K, DataIterable<V>>> it = iterator();
+        long idx = 0;
+        ArrayList<Pair<K, DataIterable<V>>> ret = new ArrayList<>();
+        while (it.hasNext()) {
+            Pair<K, DataIterable<V>> v = it.next();
+            if (idx >= startFrom && idx < (startFrom + numItems))
+                ret.add(v);
+            idx++;
+            if (idx >= (startFrom + numItems))
+                break;
+        }
+        return ret;
+    }
+
+    @Override
+    public boolean takeEnabled() {
+        return true;
     }
 
     public final PDResultsMapStorage getStorage() {

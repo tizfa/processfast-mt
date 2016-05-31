@@ -23,7 +23,7 @@ import groovy.transform.CompileStatic
 import it.cnr.isti.hlt.processfast.core.ProcessfastRuntime
 import it.cnr.isti.hlt.processfast.core.TaskContext
 import it.cnr.isti.hlt.processfast.core.TaskSet
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 import java.util.regex.Pattern
 
@@ -108,7 +108,7 @@ class DocumentAnalyzerSequential {
     }
 
     static def main(args) {
-        MTRuntime runtime = new MTRuntime()
+        MTProcessfastRuntime runtime = new MTProcessfastRuntime()
         runtime.numThreadsForDataParallelism = 1
         def ts = createMainTasksSet(runtime)
         runtime.run(ts)

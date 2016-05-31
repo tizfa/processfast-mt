@@ -43,6 +43,7 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
         if (toMerge == null) throw new NullPointerException("The partitionable dataset to intersect is 'null'");
         this.tc = tc;
         this.toMerge = toMerge;
+        this.toMerge.activateSystemThreadPool = false;
         this.maxBufferSize = maxBufferSize;
     }
 
@@ -83,6 +84,7 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
         }
 
         internalResults.remove("storage");
+        this.toMerge.activateSystemThreadPool = true;
 
         return new PDResultsCollectionStorageIteratorProvider(storage, maxBufferSize);
     }
@@ -104,7 +106,12 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
         return maxBufferSize;
     }
 
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
     private final MTTaskContext tc;
     private final MTPartitionableDataset<T> toMerge;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

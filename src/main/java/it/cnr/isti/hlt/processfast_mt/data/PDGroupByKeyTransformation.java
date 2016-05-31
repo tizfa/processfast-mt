@@ -47,6 +47,16 @@ public class PDGroupByKeyTransformation<K extends Serializable, V extends Serial
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream source) {
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
         Map grouped = (Map) source.collect(Collectors.groupingBy((Pair<K, V> item) -> item.getV1()));
@@ -67,14 +77,16 @@ public class PDGroupByKeyTransformation<K extends Serializable, V extends Serial
             dest.put("storage", storage);
         }
 
-        List<Map.Entry<K, ArrayList>> res = (List) src.collect(Collectors.toList());
-        for (Map.Entry<K, ArrayList> item : res) {
-            ArrayList listStorage = storage.get(item.getKey());
+        List<Map.Entry<K, ArrayList<Pair<K, V>>>> res = (List) src.collect(Collectors.toList());
+        for (Map.Entry<K, ArrayList<Pair<K, V>>> item : res) {
+            ArrayList<V> listStorage = storage.get(item.getKey());
             if (listStorage == null) {
                 listStorage = new ArrayList<V>();
                 storage.put(item.getKey(), listStorage);
             }
-            listStorage.addAll(item.getValue());
+
+            for (Pair<K, V> p : item.getValue())
+                listStorage.add(p.getV2());
         }
     }
 
@@ -91,5 +103,5 @@ public class PDGroupByKeyTransformation<K extends Serializable, V extends Serial
     }
 
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

@@ -49,6 +49,16 @@ public class PDMapPairFlatTransformation<T extends Serializable, K extends Seria
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream source) {
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
 
@@ -95,5 +105,5 @@ public class PDMapPairFlatTransformation<T extends Serializable, K extends Seria
 
     private final PDFunction<T, Iterator<Pair<K, V>>> code;
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

@@ -28,6 +28,7 @@ import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,14 +45,40 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
         if (tc == null) throw new NullPointerException("The task context is 'null'");
         if (dataset == null) throw new NullPointerException("The dataset to join is 'null'");
         this.tc = tc;
-        this.dataset = dataset;
+        this.dataset = (MTPairPartitionableDataset) dataset;
+        this.dataset.activateSystemThreadPool = false;
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
         this.maxBufferSize = maxBufferSize;
     }
 
     @Override
     public Stream applyTransformation(Stream source) {
+        /*if (datasetKeys == null) {
+            dataset = (MTPairPartitionableDataset) dataset.cache(CacheType.ON_DISK);
+            dataset.activateSystemThreadPool = false;
+            //datasetKeys = dataset.map((tdc, v) -> v.getV1()).cache(CacheType.ON_DISK);
+            List<K> l  = dataset.map((tdc, v) -> v.getV1()).collect();
+            datasetKeys = new HashSet<>(10000000);
+            for (K k : l) {
+                datasetKeys.add(k);
+            }
+        }
+
+        Stream<Pair<K, V>> s = source;
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+        return s.filter(item -> datasetKeys.contains(item.getV1()));*/
         if (datasetKeys == null) {
             datasetKeys = dataset.map((tdc, v) -> v.getV1()).cache(CacheType.ON_DISK);
+            dataset = (MTPairPartitionableDataset) dataset.cache(CacheType.ON_DISK);
         }
 
         Stream<Pair<K, V>> s = source;
@@ -102,6 +129,7 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
             toRead -= tmp.size();
         }
 
+        this.dataset.activateSystemThreadPool = true;
 
         return new PDResultsMapStoragePairIteratorProvider<K, Pair<V, T>>(storage, maxBufferSize);
     }
@@ -112,8 +140,9 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
     }
 
 
-    private final PairPartitionableDataset<K, T> dataset;
+    private MTPairPartitionableDataset<K, T> dataset;
     private PartitionableDataset<K> datasetKeys;
+    //private HashSet<K> datasetKeys;
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

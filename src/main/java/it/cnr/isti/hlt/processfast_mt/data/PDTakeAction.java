@@ -20,6 +20,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
@@ -68,6 +69,15 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
     }
 
     @Override
+    public <T extends Serializable> Collection<Out> computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+        if (!provider.takeEnabled())
+            return null;
+        if (outColl == null)
+            outColl = (Collection<Out>) provider.take(startFrom, numItems);
+        return outColl;
+    }
+
+    @Override
     public void mergeResults(PDResultsStorageManager storageManager, Collection<Out> src, Map dest, CacheType cacheType) {
 
         PDResultsCollectionStorage<Out> storage = (PDResultsCollectionStorage<Out>) dest.get("storage");
@@ -83,7 +93,7 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
         return true;
     }
 
-
+    private Collection<Out> outColl;
     private final MTTaskContext tc;
     private final long startFrom;
     private final long numItems;

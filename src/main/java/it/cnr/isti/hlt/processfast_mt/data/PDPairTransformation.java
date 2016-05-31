@@ -41,6 +41,7 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
         if (toMerge == null) throw new NullPointerException("The partitionable dataset to intersect is 'null'");
         this.tc = tc;
         this.toPair = toMerge;
+        this.toPair.activateSystemThreadPool = false;
         this.maxBufferSize = maxBufferSize;
     }
 
@@ -87,6 +88,7 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
     public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
+        this.toPair.activateSystemThreadPool = false;
         return new PDResultsCollectionStorageIteratorProvider(storage, maxBufferSize);
     }
 
@@ -107,8 +109,13 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
         return maxBufferSize;
     }
 
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
     private final MTTaskContext tc;
     private final MTPartitionableDataset<T> toPair;
-    private final int maxBufferSize;
+    private int maxBufferSize;
     private long toPairSize;
 }

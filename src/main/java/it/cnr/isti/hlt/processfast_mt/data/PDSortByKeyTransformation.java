@@ -100,6 +100,11 @@ public class PDSortByKeyTransformation<K extends Comparable & Serializable, V ex
         return maxBufferSize;
     }
 
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
     public final boolean getSortAscending() {
         return sortAscending;
     }
@@ -109,6 +114,6 @@ public class PDSortByKeyTransformation<K extends Comparable & Serializable, V ex
     }
 
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
     private final boolean sortAscending;
 }

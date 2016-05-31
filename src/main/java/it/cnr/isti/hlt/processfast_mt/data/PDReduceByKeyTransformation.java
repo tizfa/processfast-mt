@@ -109,11 +109,16 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
         return maxBufferSize;
     }
 
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
     public final PDFunction2<V, V, V> getCode() {
         return code;
     }
 
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
     private final PDFunction2<V, V, V> code;
 }

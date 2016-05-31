@@ -26,7 +26,7 @@ import it.cnr.isti.hlt.processfast.core.TaskSet
 import it.cnr.isti.hlt.processfast.data.CollectionDataSourceIteratorProvider
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset
 import it.cnr.isti.hlt.processfast.utils.Pair
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 import java.util.regex.Pattern
 
@@ -272,7 +272,7 @@ TaskSet createMainTasksSet(ProcessfastRuntime runtime) {
 }
 
 
-MTRuntime runtime = new MTRuntime()
+MTProcessfastRuntime runtime = new MTProcessfastRuntime()
 runtime.numThreadsForDataParallelism = 4
 def ts = createMainTasksSet(runtime)
 runtime.run(ts)

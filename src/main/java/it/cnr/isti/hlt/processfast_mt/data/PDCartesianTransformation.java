@@ -45,6 +45,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         this.tc = tc;
         this.toIntersect = toIntersect;
         this.maxBufferSize = maxBufferSize;
+        toIntersect.activateSystemThreadPool = false;
     }
 
     @Override
@@ -63,8 +64,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
             dest.put("storage", storage);
-            //toIntersectCache = (GParsPartitionableDataset) toIntersect.cache(CacheType.ON_DISK)
-            toIntersectCache = (MTPartitionableDataset) toIntersect;
+            toIntersectCache = (MTPartitionableDataset) toIntersect.cache(cacheType);
             toIntersectSize = toIntersectCache.count();
         }
 
@@ -96,6 +96,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
 
     @Override
     public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+        toIntersect.activateSystemThreadPool = true;
         toIntersectCache.close();
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
@@ -135,9 +136,14 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         return maxBufferSize;
     }
 
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
     private final MTTaskContext tc;
     private final MTPartitionableDataset<T> toIntersect;
     private MTPartitionableDataset<T> toIntersectCache;
     private long toIntersectSize = 0;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

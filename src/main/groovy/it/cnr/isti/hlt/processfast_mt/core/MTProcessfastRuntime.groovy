@@ -41,7 +41,7 @@ import java.util.concurrent.locks.ReadWriteLock
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
  * @since 1.0.0
  */
-class MTRuntime implements ProcessfastRuntime {
+class MTProcessfastRuntime implements ProcessfastRuntime {
 
     /**
      * The number of threads reserved for data parallel operations. Default value is 5.
@@ -52,7 +52,7 @@ class MTRuntime implements ProcessfastRuntime {
      * The storage managerprovider  for intermediate results in partitionable datasets computations. Default is to store
      * temporary results in RAM.
      */
-    PDResultsStorageManagerProvider pdResultsStorageManagerProvider = new PDRamResultsStorageManagerProvider()
+    PDResultsStorageManagerProvider pdResultsStorageManagerProvider
 
     /**
      * The log manager to be used by the runtime. The default implementation is
@@ -73,10 +73,11 @@ class MTRuntime implements ProcessfastRuntime {
     final MTProgramOrchestrator orchestrator
 
 
-    MTRuntime() {
+    MTProcessfastRuntime() {
         orchestrator = new MTProgramOrchestrator(this)
         logManager = new SLF4JLogManager()
         storageManagerProvider = new it.cnr.isti.hlt.processfast_storage_mapdb.MapDBRamStorageManagerProvider()
+        pdResultsStorageManagerProvider = new PDRamResultsStorageManagerProvider(this)
     }
 
     /**

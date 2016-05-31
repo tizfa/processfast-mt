@@ -26,7 +26,7 @@ import it.cnr.isti.hlt.processfast.core.TaskSet;
 import it.cnr.isti.hlt.processfast.data.CollectionDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime;
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -50,7 +50,7 @@ public class MatrixProductPDProcessEachJava {
     }
 
 
-    static TaskSet createProgram(MTRuntime runtime) {
+    static TaskSet createProgram(MTProcessfastRuntime runtime) {
 
 // Create main tasks set.
         TaskSet ts = runtime.createTaskSet();
@@ -101,7 +101,7 @@ public class MatrixProductPDProcessEachJava {
 
     public static void main(String[] args) {
 
-        MTRuntime runtime = new MTRuntime();
+        MTProcessfastRuntime runtime = new MTProcessfastRuntime();
         runtime.setNumThreadsForDataParallelism(8);
         TaskSet ts = createProgram(runtime);
         runtime.run(ts);

@@ -20,17 +20,9 @@
 package it.cnr.isti.hlt.processfast_mt.core
 
 import groovy.transform.CompileStatic
-import it.cnr.isti.hlt.processfast.connector.FutureValuePromise
-import it.cnr.isti.hlt.processfast.connector.ValuePromise
-import it.cnr.isti.hlt.processfast.core.AtomicGetOperationsSet
-import it.cnr.isti.hlt.processfast.core.AtomicOperationsSet
 import it.cnr.isti.hlt.processfast.core.LogManager
 import it.cnr.isti.hlt.processfast.core.SystemContext
-import it.cnr.isti.hlt.processfast.data.RamDictionary
-import it.cnr.isti.hlt.processfast.data.ReadableDictionary
 import it.cnr.isti.hlt.processfast.data.StorageManager
-
-import java.util.concurrent.locks.ReadWriteLock
 
 /**
  * @author Tiziano Fagni (tiziano.fagni@isti.cnr.it)
@@ -41,10 +33,10 @@ class MTSystemContext implements SystemContext {
     /**
      * The GPars runtime to use.
      */
-    final MTRuntime runtime
+    final MTProcessfastRuntime runtime
 
 
-    MTSystemContext(MTRuntime runtime) {
+    MTSystemContext(MTProcessfastRuntime runtime) {
         if (runtime == null)
             throw new NullPointerException("The GPars runtime is 'null'")
 

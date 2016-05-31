@@ -48,6 +48,16 @@ public class PDMapFlatTransformation<T, Out> implements PDTransformation {
     }
 
     @Override
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+
+    @Override
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @Override
     public Stream applyTransformation(Stream src) {
         final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
         Stream<T> source = src;
@@ -56,7 +66,7 @@ public class PDMapFlatTransformation<T, Out> implements PDTransformation {
             ArrayList ret = new ArrayList();
             while (res.hasNext())
                 ret.add(res.next());
-            return ret.parallelStream();
+            return ret.stream();
         });
     }
 
@@ -91,5 +101,5 @@ public class PDMapFlatTransformation<T, Out> implements PDTransformation {
 
     private final PDFunction<T, Iterator<Out>> code;
     private final MTTaskContext tc;
-    private final int maxBufferSize;
+    private int maxBufferSize;
 }

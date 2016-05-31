@@ -26,7 +26,7 @@ import it.cnr.isti.hlt.processfast.core.ProcessfastRuntime
 import it.cnr.isti.hlt.processfast.core.TaskContext
 import it.cnr.isti.hlt.processfast.core.TaskSet
 import it.cnr.isti.hlt.processfast.core.WithConnectorInfo
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
 import java.util.regex.Pattern
 
@@ -147,7 +147,7 @@ class DocumentsAnalyzerSequentialStreamAllFiles {
     }
 
     static def main(args) {
-        MTRuntime runtime = new MTRuntime()
+        MTProcessfastRuntime runtime = new MTProcessfastRuntime()
         def ts = createMainTasksSet(runtime)
         runtime.run(ts)
     }

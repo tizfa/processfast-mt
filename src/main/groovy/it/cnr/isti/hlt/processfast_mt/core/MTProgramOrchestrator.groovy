@@ -54,7 +54,7 @@ class MTProgramOrchestrator {
     /**
      * The used GPars runtime.
      */
-    final MTRuntime runtime
+    final MTProcessfastRuntime runtime
 
     /**
      * The global PGroup used to run the programmer's defined tasks.
@@ -120,7 +120,7 @@ class MTProgramOrchestrator {
 
     private final HashMap<String, ReadWriteLock> atomicLocks;
 
-    MTProgramOrchestrator(MTRuntime runtime) {
+    MTProgramOrchestrator(MTProcessfastRuntime runtime) {
         if (runtime == null)
             throw new NullPointerException("The specified runtime is 'null'")
 

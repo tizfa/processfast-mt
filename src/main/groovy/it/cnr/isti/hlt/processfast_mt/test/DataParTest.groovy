@@ -20,9 +20,9 @@
 package it.cnr.isti.hlt.processfast_mt.test
 
 import it.cnr.isti.hlt.processfast.data.CollectionDataSourceIteratorProvider
-import it.cnr.isti.hlt.processfast_mt.core.MTRuntime
+import it.cnr.isti.hlt.processfast_mt.core.MTProcessfastRuntime
 
-MTRuntime runtime = new MTRuntime()
+MTProcessfastRuntime runtime = new MTProcessfastRuntime()
 runtime.numThreadsForDataParallelism = 10
 def ts = runtime.createTaskSet()
 
