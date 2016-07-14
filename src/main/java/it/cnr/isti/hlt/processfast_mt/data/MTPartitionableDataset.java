@@ -55,6 +55,8 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
      */
     ImmutableDataSourceIteratorProvider<T> dataSourceIteratorProvider;
 
+    HashMap<String, Serializable> inputValues;
+
 
     /**
      * Used to indicate if a processing phase started in {@link #computeResults(ImmutableDataSourceIteratorProvider, List, PDAction)} or
@@ -77,6 +79,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         this.dataSourceIteratorProvider = provider;
         this.transformations = new ArrayList<>();
         this.activateSystemThreadPool = true;
+        this.inputValues = new HashMap<>();
     }
 
     public MTPartitionableDataset(MTPartitionableDataset previousPD) {
@@ -88,6 +91,8 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         this.dataSourceIteratorProvider = previousPD.dataSourceIteratorProvider;
         this.maxPartitionSize = previousPD.maxPartitionSize;
         this.activateSystemThreadPool = previousPD.activateSystemThreadPool;
+        this.inputValues = new HashMap<>();
+        this.inputValues.putAll(previousPD.inputValues);
     }
 
     public MTTaskContext getTc() {
@@ -115,6 +120,21 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         return pd;
     }
 
+    @Override
+    public PartitionableDataset<T> withInputData(String key, Serializable value) {
+        if (key == null || key.isEmpty())
+            throw new IllegalArgumentException("The key value is 'null' or empty");
+        if (value == null)
+            throw new IllegalArgumentException("The input value is 'null'");
+
+        MTPartitionableDataset<T> pd = new MTPartitionableDataset<T>(this);
+        PDCustomizeTransformation ct = new PDCustomizeTransformation();
+        ct.setCustomizationCode((MTPartitionableDataset pad) -> {
+            pad.inputValues.put(key, value);
+        });
+        pd.transformations.add(ct);
+        return pd;
+    }
 
     protected ImmutableDataSourceIteratorProvider computeAllIntermediateResults(PDResultsStorageManager storageManager, ImmutableDataSourceIteratorProvider<T> provider,
                                                                                 List<PDBaseTransformation> transformations,
@@ -211,6 +231,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         try {
             if (activateSystemThreadPool) {
                 final PartitionableDataset<T> pd = tc.getRuntime().getOrchestrator().getDataParallelismPool().submit(() -> {
+                    //return cacheInternal(cacheType, false);
                     return cacheInternal(cacheType, true);
                 }).get();
                 return pd;
@@ -403,6 +424,13 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
     public void close() {
     }
 
+    @Override
+    public Serializable getInputData(String key) {
+        if (key == null || key.isEmpty())
+            throw new IllegalArgumentException("The input data key is 'null' or empty");
+        return inputValues.get(key);
+    }
+
     /**
      * Compute a PD set of transformations and  a final action based on the specified data source
      * provider. To compute the final results, it uses the given number of threads.
@@ -440,26 +468,26 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
                 Stream stream = processingBuffer.parallelStream();
                 for (PDTransformation t : transformations) {
                     t.setMaxBufferSize(maxPartitionSize);
-                    stream = t.applyTransformation(stream);
+                    stream = t.applyTransformation(this, stream);
                 }
 
                 // Apply final action.
-                T1 partialResults = action.applyAction(stream);
+                T1 partialResults = action.applyAction(this, stream);
 
                 // Merge partial results.
-                action.mergeResults(storageManager, partialResults, internalFinalResults, cacheType);
+                action.mergeResults(this, storageManager, partialResults, internalFinalResults, cacheType);
                 //}).get();
             } catch (Exception e) {
                 throw new RuntimeException("Executing computeFinalResults()", e);
             }
 
-            if (!action.needMoreResults(internalFinalResults))
+            if (!action.needMoreResults(this, internalFinalResults))
                 mustBreak = true;
             if (mustBreak)
                 break;
         }
 
-        T1 finalRes = action.getFinalResults(storageManager, internalFinalResults);
+        T1 finalRes = action.getFinalResults(this, storageManager, internalFinalResults);
         internalFinalResults.clear();
         return finalRes;
     }
@@ -491,7 +519,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
         if (transformations.size() > 0) {
             return computeResults_internalStreaming(provider, transformations, action);
         } else {
-            T1 res = action.computeFinalResultsDirectlyOnDataSourceIteratorProvider(provider);
+            T1 res = action.computeFinalResultsDirectlyOnDataSourceIteratorProvider(this, provider);
             if (res == null)
                 res = computeResults_internalStreaming(provider, transformations, action);
             return res;
@@ -539,11 +567,11 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
                 Stream stream = processingBuffer.parallelStream();
                 for (PDTransformation t : transformations) {
                     t.setMaxBufferSize(maxPartitionSize);
-                    stream = t.applyTransformation(stream);
+                    stream = t.applyTransformation(this, stream);
                 }
 
                 lastTr.setMaxBufferSize(maxPartitionSize);
-                lastTr.mergeResults(storageManager, stream, internalFinalResults, cacheType);
+                lastTr.mergeResults(this, storageManager, stream, internalFinalResults, cacheType);
                 //}).get();
             } catch (Exception e) {
                 throw new RuntimeException("Executing computeIntermediateResults()", e);
@@ -551,7 +579,7 @@ public class MTPartitionableDataset<T extends Serializable> implements Partition
 
         }
 
-        PDResultsStorageIteratorProvider itProvider = lastTr.getFinalResults(internalFinalResults);
+        PDResultsStorageIteratorProvider itProvider = lastTr.getFinalResults(this, internalFinalResults);
         internalFinalResults.clear();
         return itProvider;
     }

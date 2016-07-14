@@ -22,6 +22,7 @@ package it.cnr.isti.hlt.processfast_mt.data
 import groovy.transform.CompileStatic
 import it.cnr.isti.hlt.processfast.core.TaskDataContext
 import it.cnr.isti.hlt.processfast.core.TaskSharedData
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset
 import it.cnr.isti.hlt.processfast.data.ReadableDictionary
 import it.cnr.isti.hlt.processfast.data.StorageManager
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext
@@ -41,12 +42,22 @@ class GParsTaskDataContext implements TaskDataContext {
 
     final StorageManager storageManager
 
-    GParsTaskDataContext(MTTaskContext tc) {
+    final PartitionableDataset pd;
+
+    GParsTaskDataContext(MTTaskContext tc, PartitionableDataset pd) {
         if (tc == null)
             throw new NullPointerException("The task context is 'null'")
+        if (pd == null)
+            throw new NullPointerException("The parent partitionable dataset is 'null'");
+        this.pd = pd;
         this.tasksSetDataDictionary = tc.tasksSetDataDictionary
         this.taskSharedData = new GParsTaskSharedData(dataDictionary: tc.privateTaskDataDictionary)
         this.storageManager = tc.storageManager
+    }
+
+    @Override
+    Serializable getInputData(String key) {
+        return this.pd.getInputData(key);
     }
 
     @Override

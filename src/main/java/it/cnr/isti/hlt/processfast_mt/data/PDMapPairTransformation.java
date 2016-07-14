@@ -55,8 +55,8 @@ public class PDMapPairTransformation<T, K, V> implements PDTransformation {
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
         return source.map(item -> code.call(tdc, (T) item));
     }
 
@@ -66,7 +66,7 @@ public class PDMapPairTransformation<T, K, V> implements PDTransformation {
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -78,7 +78,7 @@ public class PDMapPairTransformation<T, K, V> implements PDTransformation {
     }
 
     @Override
-    public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsCollectionStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsCollectionStorageIteratorProvider(storage, maxBufferSize);

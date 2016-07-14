@@ -48,7 +48,7 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         return source;
     }
 
@@ -58,7 +58,7 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -70,15 +70,16 @@ public class PDUnionTransformation<T extends Serializable> implements PDTransfor
     }
 
     @Override
-    public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsCollectionStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         boolean done = false;
-        long s = toMerge.count();
+        MTPartitionableDataset toMergeCached = (MTPartitionableDataset) toMerge.cache(CacheType.ON_DISK);
+        long s = toMergeCached.count();
         long startIdx = 0;
         while (!done) {
             long toRetrieve = Math.min(maxBufferSize, s - startIdx);
             if (toRetrieve == 0) break;
-            List<T> items = toMerge.take(startIdx, toRetrieve);
+            List<T> items = toMergeCached.take(startIdx, toRetrieve);
             storage.addResults(items);
             startIdx += items.size();
         }

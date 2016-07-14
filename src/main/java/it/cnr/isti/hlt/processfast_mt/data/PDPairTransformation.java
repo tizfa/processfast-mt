@@ -42,11 +42,12 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
         this.tc = tc;
         this.toPair = toMerge;
         this.toPair.activateSystemThreadPool = false;
+        this.toPair = (MTPartitionableDataset) this.toPair.cache(CacheType.ON_DISK);
         this.maxBufferSize = maxBufferSize;
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         return source;
     }
 
@@ -56,7 +57,7 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -85,7 +86,7 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
     }
 
     @Override
-    public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsCollectionStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
         this.toPair.activateSystemThreadPool = false;
@@ -115,7 +116,7 @@ public class PDPairTransformation<T extends Serializable> implements PDTransform
     }
 
     private final MTTaskContext tc;
-    private final MTPartitionableDataset<T> toPair;
+    private MTPartitionableDataset<T> toPair;
     private int maxBufferSize;
     private long toPairSize;
 }

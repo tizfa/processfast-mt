@@ -54,7 +54,7 @@ public class PDDistinctTransformation<T extends Serializable> implements PDTrans
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         return source.distinct();
     }
 
@@ -64,7 +64,7 @@ public class PDDistinctTransformation<T extends Serializable> implements PDTrans
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage<T> storage = (PDResultsCollectionStorage<T>) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -76,7 +76,7 @@ public class PDDistinctTransformation<T extends Serializable> implements PDTrans
     }
 
     @Override
-    public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsCollectionStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsCollectionStorageIteratorProvider(storage, maxBufferSize);

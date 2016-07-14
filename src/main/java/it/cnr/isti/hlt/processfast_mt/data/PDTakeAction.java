@@ -21,6 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
@@ -45,13 +46,13 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
     }
 
     @Override
-    public Collection<Out> applyAction(Stream source) {
+    public Collection<Out> applyAction(PartitionableDataset pd, Stream source) {
         List res = (List) source.skip(startFrom).limit(numItems).collect(Collectors.toList());
         return res;
     }
 
     @Override
-    public Collection<Out> getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
+    public Collection<Out> getFinalResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Map internalResults) {
 
         PDResultsCollectionStorage<Out> results = (PDResultsCollectionStorage<Out>) internalResults.get("storage");
         final long s = results.size();
@@ -69,7 +70,7 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
     }
 
     @Override
-    public <T extends Serializable> Collection<Out> computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+    public <T extends Serializable> Collection<Out> computeFinalResultsDirectlyOnDataSourceIteratorProvider(PartitionableDataset pd, ImmutableDataSourceIteratorProvider<T> provider) {
         if (!provider.takeEnabled())
             return null;
         if (outColl == null)
@@ -78,7 +79,7 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Collection<Out> src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Collection<Out> src, Map dest, CacheType cacheType) {
 
         PDResultsCollectionStorage<Out> storage = (PDResultsCollectionStorage<Out>) dest.get("storage");
         if (storage == null) {
@@ -89,7 +90,7 @@ public class PDTakeAction<Out extends Serializable> implements PDAction<Collecti
     }
 
     @Override
-    public boolean needMoreResults(Map currentResults) {
+    public boolean needMoreResults(PartitionableDataset pd, Map currentResults) {
         return true;
     }
 

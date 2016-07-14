@@ -57,8 +57,8 @@ public class PDGroupByKeyTransformation<K extends Serializable, V extends Serial
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
         Map grouped = (Map) source.collect(Collectors.groupingBy((Pair<K, V> item) -> item.getV1()));
         return grouped.entrySet().parallelStream();
     }
@@ -69,7 +69,7 @@ public class PDGroupByKeyTransformation<K extends Serializable, V extends Serial
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsMapStorage<K, ArrayList> storage = (PDResultsMapStorage<K, ArrayList>) dest.get("storage");
 
         if (storage == null) {
@@ -91,7 +91,7 @@ public class PDGroupByKeyTransformation<K extends Serializable, V extends Serial
     }
 
     @Override
-    public PDResultsStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsMapStorage storage = (PDResultsMapStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsMapStorageGroupByIteratorProvider(storage, maxBufferSize);

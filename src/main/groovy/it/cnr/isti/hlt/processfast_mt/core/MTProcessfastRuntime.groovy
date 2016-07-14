@@ -65,7 +65,7 @@ class MTProcessfastRuntime implements ProcessfastRuntime {
      */
     StorageManager storageManager
 
-    StorageManagerProvider storageManagerProvider
+    private StorageManagerProvider storageManagerProvider
 
     /**
      * The runtime component that orchestrate and monitor the running application.
@@ -141,4 +141,10 @@ class MTProcessfastRuntime implements ProcessfastRuntime {
         storageManager
     }
 
+
+    public setStorageManagerProvider(StorageManagerProvider smp) {
+        if (smp == null)
+            throw new NullPointerException("The specified storage manager provider is 'null'")
+        this.storageManagerProvider = smp;
+    }
 }

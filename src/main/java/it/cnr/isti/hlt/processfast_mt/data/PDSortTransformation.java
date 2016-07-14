@@ -46,7 +46,7 @@ public class PDSortTransformation<K extends Comparable<K> & Serializable> implem
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         return source.sorted();
     }
 
@@ -56,7 +56,7 @@ public class PDSortTransformation<K extends Comparable<K> & Serializable> implem
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsSortedSetStorage storage = (PDResultsSortedSetStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createSortedSetStorage(storageManager.generateUniqueStorageID(), cacheType, sortAscending);
@@ -72,7 +72,7 @@ public class PDSortTransformation<K extends Comparable<K> & Serializable> implem
     }
 
     @Override
-    public PDResultsSortedSetStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsSortedSetStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsSortedSetStorage storage = (PDResultsSortedSetStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsSortedSetStorageIteratorProvider(storage, maxBufferSize);

@@ -23,6 +23,7 @@ import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast.data.PDProcedure;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
@@ -39,8 +40,8 @@ public class PDProcessAction<Out extends Serializable> implements PDAction<Void>
     }
 
     @Override
-    public Void applyAction(Stream source) {
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+    public Void applyAction(PartitionableDataset pd, Stream source) {
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
         source.forEach(item -> {
             func.call(tdc, (Out) item);
         });
@@ -49,21 +50,21 @@ public class PDProcessAction<Out extends Serializable> implements PDAction<Void>
     }
 
     @Override
-    public Void getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
+    public Void getFinalResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Map internalResults) {
         return null;
     }
 
     @Override
-    public <T extends Serializable> Void computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+    public <T extends Serializable> Void computeFinalResultsDirectlyOnDataSourceIteratorProvider(PartitionableDataset pd, ImmutableDataSourceIteratorProvider<T> provider) {
         return null;
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Void src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Void src, Map dest, CacheType cacheType) {
     }
 
     @Override
-    public boolean needMoreResults(Map currentResults) {
+    public boolean needMoreResults(PartitionableDataset pd, Map currentResults) {
         return true;
     }
 

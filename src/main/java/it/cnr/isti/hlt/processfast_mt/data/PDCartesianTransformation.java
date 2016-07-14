@@ -45,11 +45,11 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
         this.tc = tc;
         this.toIntersect = toIntersect;
         this.maxBufferSize = maxBufferSize;
-        toIntersect.activateSystemThreadPool = false;
+        this.toIntersect.activateSystemThreadPool = false;
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         return source;
     }
 
@@ -59,7 +59,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -95,7 +95,7 @@ public class PDCartesianTransformation<T extends Serializable> implements PDTran
     }
 
     @Override
-    public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsCollectionStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         toIntersect.activateSystemThreadPool = true;
         toIntersectCache.close();
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");

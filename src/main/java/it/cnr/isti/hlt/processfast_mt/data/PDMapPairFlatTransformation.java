@@ -59,8 +59,8 @@ public class PDMapPairFlatTransformation<T extends Serializable, K extends Seria
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
 
         Stream<T> src = source;
         return src.flatMap(t -> {
@@ -80,7 +80,7 @@ public class PDMapPairFlatTransformation<T extends Serializable, K extends Seria
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createCollectionStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -92,7 +92,7 @@ public class PDMapPairFlatTransformation<T extends Serializable, K extends Seria
     }
 
     @Override
-    public PDResultsCollectionStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsCollectionStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsCollectionStorage storage = (PDResultsCollectionStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsCollectionStorageIteratorProvider(storage, maxBufferSize);

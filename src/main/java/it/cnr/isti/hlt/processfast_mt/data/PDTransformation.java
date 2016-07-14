@@ -20,6 +20,7 @@
 package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -39,10 +40,11 @@ public interface PDTransformation extends PDBaseTransformation {
     /**
      * Apply a specific transformation on source collection.
      *
+     * @param pd     The parent partitionable dataset.
      * @param source The source data collection.
      * @return The resulting collection after the operation has been applied.
      */
-    Stream applyTransformation(Stream source);
+    Stream applyTransformation(PartitionableDataset pd, Stream source);
 
     /**
      * Indicate if the transformation need all available data or just some data chunk
@@ -55,6 +57,7 @@ public interface PDTransformation extends PDBaseTransformation {
     /**
      * Merge the results in "src" to the results in "dest".
      *
+     * @param pd             The parent partitionable dataset.
      * @param storageManager The storage manager to use.
      * @param src            The source results.
      * @param dest           The destination results or 'null' if there are no results in dest.
@@ -62,15 +65,16 @@ public interface PDTransformation extends PDBaseTransformation {
      *                       structure for store intermediate results needs to be created.
      * @return The merged results.
      */
-    void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType);
+    void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType);
 
     /**
      * Get the final results to be returned to action caller by
      * translating the specified final internal results.
      *
+     * @param pd              The parent partitionable dataset.
      * @param internalResults The computed final internal results.
      * @return The final results for action caller.
      */
-    PDResultsStorageIteratorProvider getFinalResults(Map internalResults);
+    PDResultsStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults);
 }
 

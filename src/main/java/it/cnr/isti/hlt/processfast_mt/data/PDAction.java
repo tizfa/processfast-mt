@@ -21,6 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -38,14 +39,16 @@ public interface PDAction<Out> {
     /**
      * Apply the action on a source collection.
      *
+     * @param pd The parent partitionable dataset.
      * @param source
      * @return
      */
-    Out applyAction(Stream source);
+    Out applyAction(PartitionableDataset pd, Stream source);
 
     /**
      * Merge the results in "src" to the results in "dest".
      *
+     * @param pd The parent partitionable dataset.
      * @param storageManager The storage manager available.
      * @param src            The source results.
      * @param dest           The destination results or 'null' if there are no results in dest.
@@ -53,25 +56,27 @@ public interface PDAction<Out> {
      *                       structure for store intermediate results needs to be created.
      * @return The merged results.
      */
-    void mergeResults(PDResultsStorageManager storageManager, Out src, Map dest, CacheType cacheType);
+    void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Out src, Map dest, CacheType cacheType);
 
     /**
      * Indicate if the action need more results to compute the
      * desired behaviour.
      *
+     * @param pd The parent partitionable dataset.
      * @param currentResults The current results.
      * @return True if the action need more results, false otherwise.
      */
-    boolean needMoreResults(Map currentResults);
+    boolean needMoreResults(PartitionableDataset pd, Map currentResults);
 
     /**
      * Get the final results to be returned to action caller by
      * translating the specified final internal results.
      *
+     * @param pd The parent partitionable dataset.
      * @param internalResults The computed final internal results.
      * @return The final results for action caller.
      */
-    Out getFinalResults(PDResultsStorageManager storageManager, Map internalResults);
+    Out getFinalResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Map internalResults);
 
 
     /**
@@ -82,10 +87,11 @@ public interface PDAction<Out> {
      * Compute the action results directly using the definitive data source iterator provider. If the action can not be performed directly,
      * 'null' will be returned.
      *
+     * @param pd The parent partitionable dataset.
      * @param provider The data source iterator provider to use.
      * @param <T>      The item type in the data source.
      * @return The final results or 'null' if the final results can't be computed directly.
      */
-    <T extends Serializable> Out computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider);
+    <T extends Serializable> Out computeFinalResultsDirectlyOnDataSourceIteratorProvider(PartitionableDataset pd, ImmutableDataSourceIteratorProvider<T> provider);
 }
 

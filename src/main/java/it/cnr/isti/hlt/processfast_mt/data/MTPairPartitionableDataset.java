@@ -128,4 +128,32 @@ public class MTPairPartitionableDataset<K extends Serializable, V extends Serial
         pd.transformations.add(ct);
         return pd;
     }
+
+    @Override
+    public PairPartitionableDataset<K, V> withInputData(String key, Serializable value) {
+        if (key == null || key.isEmpty())
+            throw new IllegalArgumentException("The key value is 'null' or empty");
+        if (value == null)
+            throw new IllegalArgumentException("The input value is 'null'");
+
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<K, V>(this);
+        PDCustomizeTransformation ct = new PDCustomizeTransformation();
+        ct.setCustomizationCode((MTPartitionableDataset pad) -> {
+            pad.inputValues.put(key, value);
+        });
+        pd.transformations.add(ct);
+        return pd;
+    }
+
+    @Override
+    public PairPartitionableDataset<K, V> union(PartitionableDataset<Pair<K, V>> dataset) {
+        if (dataset == null)
+            throw new NullPointerException("The specified dataset is 'null'");
+        if (!(dataset instanceof MTPartitionableDataset))
+            throw new IllegalArgumentException("The dataset to intersect must be of type ${GParsPartitionableDataset.class.name}");
+
+        MTPairPartitionableDataset<K, V> pd = new MTPairPartitionableDataset<K, V>(this);
+        pd.transformations.add(new PDUnionTransformation<Pair<K, V>>(tc, (MTPartitionableDataset<Pair<K, V>>) dataset, maxPartitionSize));
+        return pd;
+    }
 }

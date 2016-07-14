@@ -139,23 +139,23 @@ class MTTaskContext extends MTSystemContext implements TaskContext {
     def <V extends Serializable> PairPartitionableDataset<Integer, DataIterable<V>> createPairPartitionableDataset(Iterator<ImmutableDataSourceIteratorProvider<V>> dataSources) {
         if (!dataSources.hasNext())
             throw new IllegalArgumentException("The data sources iterator is empty")
+
         ImmutableDataSourceIteratorProvider<V> ds = dataSources.next()
         def dsPD = createPartitionableDataset(ds);
-        int curClusterID = 0
-        tasksSetDataDictionary.put("clusterID", curClusterID)
-        PairPartitionableDataset<Integer, V> dsMerged = dsPD.mapPair({ TaskDataContext ctx, V v ->
-            int clusterID = (int) ctx.tasksSetDataDictionary.get("clusterID")
-            return new Pair<Integer, V>(clusterID, v)
+        int curIdx = 0
+        PairPartitionableDataset<Integer, V> dsMerged = dsPD.withInputData("idx", curIdx).mapPair({ TaskDataContext ctx, V v ->
+            int sourceIdx = (int) ctx.getInputData("idx")
+            return new Pair<Integer, V>(sourceIdx, v)
         }).cache(CacheType.ON_DISK)
         while (dataSources.hasNext()) {
             ds = dataSources.next()
-            curClusterID++
-            tasksSetDataDictionary.put("clusterID", curClusterID)
-            PairPartitionableDataset<Integer, V> dsPair = dsPD.mapPair({ TaskDataContext ctx, V v ->
-                int clusterID = (int) ctx.tasksSetDataDictionary.get("clusterID")
-                return new Pair<Integer, V>(clusterID, v)
+            dsPD = createPartitionableDataset(ds)
+            curIdx++
+            PairPartitionableDataset<Integer, V> dsPair = dsPD.withInputData("idx", curIdx).mapPair({ TaskDataContext ctx, V v ->
+                int scourceIdx = (int) ctx.getInputData("idx")
+                return new Pair<Integer, V>(scourceIdx, v)
             })
-            dsMerged.union(dsPair).cache(CacheType.ON_DISK)
+            dsMerged = dsMerged.union(dsPair).cache(CacheType.ON_DISK)
         }
 
         return dsMerged.groupByKey()

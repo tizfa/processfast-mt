@@ -21,6 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
@@ -48,7 +49,7 @@ public class PDSortByKeyTransformation<K extends Comparable & Serializable, V ex
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         Stream<Pair<K, V>> src = source;
         return src.sorted((o1, o2) -> o1.getV1().compareTo(o2.getV1()));
     }
@@ -59,7 +60,7 @@ public class PDSortByKeyTransformation<K extends Comparable & Serializable, V ex
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsSortedSetStorage storage = (PDResultsSortedSetStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createSortedSetStorage(storageManager.generateUniqueStorageID(), cacheType, sortAscending);
@@ -81,7 +82,7 @@ public class PDSortByKeyTransformation<K extends Comparable & Serializable, V ex
     }
 
     @Override
-    public PDResultsSortedSetStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsSortedSetStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsSortedSetStorage storage = (PDResultsSortedSetStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsSortedSetStorageIteratorProvider(storage, maxBufferSize);

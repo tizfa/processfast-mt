@@ -23,6 +23,7 @@ import groovy.transform.CompileStatic;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
 import it.cnr.isti.hlt.processfast.data.PDFunction2;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
@@ -39,8 +40,8 @@ public class PDReduceAction<Out extends Serializable> implements PDAction<Out> {
     }
 
     @Override
-    public Out applyAction(Stream source) {
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+    public Out applyAction(PartitionableDataset pd, Stream source) {
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
 
         return (Out) source.reduce((i1, i2) -> {
             return code.call(tdc, (Out) i1, (Out) i2);
@@ -48,26 +49,26 @@ public class PDReduceAction<Out extends Serializable> implements PDAction<Out> {
     }
 
     @Override
-    public Out getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
+    public Out getFinalResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Map internalResults) {
         return (Out) internalResults.get("res");
     }
 
     @Override
-    public <T extends Serializable> Out computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+    public <T extends Serializable> Out computeFinalResultsDirectlyOnDataSourceIteratorProvider(PartitionableDataset pd, ImmutableDataSourceIteratorProvider<T> provider) {
         return null;
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Out src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Out src, Map dest, CacheType cacheType) {
         Out cur = (Out) dest.get("res");
         if (cur == null)
             dest.put("res", src);
         else
-            dest.put("res", code.call(new GParsTaskDataContext(tc), cur, src));
+            dest.put("res", code.call(new GParsTaskDataContext(tc, pd), cur, src));
     }
 
     @Override
-    public boolean needMoreResults(Map currentResults) {
+    public boolean needMoreResults(PartitionableDataset pd, Map currentResults) {
         return true;
     }
 

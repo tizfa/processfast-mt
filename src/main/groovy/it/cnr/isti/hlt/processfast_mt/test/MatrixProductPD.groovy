@@ -62,14 +62,14 @@ def createProgram(MTProcessfastRuntime runtime) {
         // Initialize matrices.
         initMatrices(matrix1, matrix2, numRows1, numCommon, numCols2)
 
-        tc.privateTaskDataDictionary.put("matrix2", matrix2)
 
-        PartitionableDataset<Pair<Integer, double[]>> pd1 = tc.createPairPartitionableDataset(new RamDoubleMatrixIteratorProvider(matrix1, true));
+        def pd1 = tc.createPairPartitionableDataset(new RamDoubleMatrixIteratorProvider(matrix1, true))
+                .withInputData("matrix2", matrix2)
         long startTime = System.currentTimeMillis();
         def results = pd1.enableLocalComputation(true).map { TaskDataContext tdc, Pair<Integer, double[]> item ->
             double[] m1Row = item.v2
             int i = item.v1
-            double[][] m2 = (double[][]) tdc.taskSharedData.dataDictionary.get("matrix2")
+            double[][] m2 = (double[][]) tdc.getInputData("matrix2")
             double[] products = new double[m2[0].length]
             for (int j = 0; j < m2[0].length; j++) {
                 double val = 0

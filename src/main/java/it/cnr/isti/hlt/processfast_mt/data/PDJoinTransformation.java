@@ -61,7 +61,7 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
     }
 
     @Override
-    public Stream applyTransformation(Stream source) {
+    public Stream applyTransformation(PartitionableDataset pd, Stream source) {
         /*if (datasetKeys == null) {
             dataset = (MTPairPartitionableDataset) dataset.cache(CacheType.ON_DISK);
             dataset.activateSystemThreadPool = false;
@@ -78,11 +78,13 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
         return s.filter(item -> datasetKeys.contains(item.getV1()));*/
         if (datasetKeys == null) {
             datasetKeys = dataset.map((tdc, v) -> v.getV1()).cache(CacheType.ON_DISK);
-            dataset = (MTPairPartitionableDataset) dataset.cache(CacheType.ON_DISK);
+            MTPairPartitionableDataset datasetTmp = (MTPairPartitionableDataset) dataset.cache(CacheType.ON_DISK);
+            dataset.activateSystemThreadPool = true;
+            dataset = datasetTmp;
         }
 
         Stream<Pair<K, V>> s = source;
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
         return s.filter(item -> datasetKeys.contains(item.getV1()));
     }
 
@@ -92,7 +94,7 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsMapStorage storage = (PDResultsMapStorage) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createMapStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -108,7 +110,7 @@ public class PDJoinTransformation<K extends Serializable, V extends Serializable
     }
 
     @Override
-    public PDResultsMapStoragePairIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsMapStoragePairIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsMapStorage storage = (PDResultsMapStorage) internalResults.get("storage");
         internalResults.remove("storage");
 

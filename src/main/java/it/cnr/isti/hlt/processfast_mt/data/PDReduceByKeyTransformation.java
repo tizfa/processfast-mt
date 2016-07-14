@@ -22,6 +22,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.PDFunction2;
 import it.cnr.isti.hlt.processfast.data.PairPartitionableDataset;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast.utils.Pair;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
@@ -49,8 +50,8 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
     }
 
     @Override
-    public Stream applyTransformation(Stream src) {
-        GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+    public Stream applyTransformation(PartitionableDataset pd, Stream src) {
+        GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
 
         Stream<Pair<K, V>> source = src;
         Map<K, V> res = (Map) source.collect(Collectors.groupingBy((Pair<K, V> item) -> item.getV1(), new PDFunctionCollector(tdc, code)));
@@ -67,7 +68,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Stream src, Map dest, CacheType cacheType) {
         PDResultsMapStorage<K, V> storage = (PDResultsMapStorage<K, V>) dest.get("storage");
         if (storage == null) {
             storage = storageManager.createMapStorage(storageManager.generateUniqueStorageID(), cacheType);
@@ -75,7 +76,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
         }
 
         final PDResultsMapStorage<K, V> st = storage;
-        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc);
+        final GParsTaskDataContext tdc = new GParsTaskDataContext(tc, pd);
         Collection<Pair<K, V>> c = (Collection) src.collect(Collectors.toList());
         c.stream().forEach(item -> {
             V curVal = item.getV2();
@@ -90,7 +91,7 @@ public class PDReduceByKeyTransformation<K extends Serializable, V extends Seria
     }
 
     @Override
-    public PDResultsStorageIteratorProvider getFinalResults(Map internalResults) {
+    public PDResultsStorageIteratorProvider getFinalResults(PartitionableDataset pd, Map internalResults) {
         PDResultsMapStorage storage = (PDResultsMapStorage) internalResults.get("storage");
         internalResults.remove("storage");
         return new PDResultsMapStoragePairIteratorProvider(storage, maxBufferSize);

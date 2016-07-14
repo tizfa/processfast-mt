@@ -21,6 +21,7 @@ package it.cnr.isti.hlt.processfast_mt.data;
 
 import it.cnr.isti.hlt.processfast.data.CacheType;
 import it.cnr.isti.hlt.processfast.data.ImmutableDataSourceIteratorProvider;
+import it.cnr.isti.hlt.processfast.data.PartitionableDataset;
 import it.cnr.isti.hlt.processfast_mt.core.MTTaskContext;
 
 import java.io.Serializable;
@@ -38,17 +39,17 @@ public class PDContainsAction<ItemType extends Serializable> implements PDAction
     }
 
     @Override
-    public Boolean applyAction(Stream source) {
+    public Boolean applyAction(PartitionableDataset pd, Stream source) {
         return source.anyMatch(i -> i.equals(item));
     }
 
     @Override
-    public Boolean getFinalResults(PDResultsStorageManager storageManager, Map internalResults) {
+    public Boolean getFinalResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Map internalResults) {
         return (boolean) internalResults.get("res");
     }
 
     @Override
-    public <T extends Serializable> Boolean computeFinalResultsDirectlyOnDataSourceIteratorProvider(ImmutableDataSourceIteratorProvider<T> provider) {
+    public <T extends Serializable> Boolean computeFinalResultsDirectlyOnDataSourceIteratorProvider(PartitionableDataset pd, ImmutableDataSourceIteratorProvider<T> provider) {
         if (!provider.containsEnabled())
             return null;
         if (itemContained == null)
@@ -57,7 +58,7 @@ public class PDContainsAction<ItemType extends Serializable> implements PDAction
     }
 
     @Override
-    public void mergeResults(PDResultsStorageManager storageManager, Boolean src, Map dest, CacheType cacheType) {
+    public void mergeResults(PartitionableDataset pd, PDResultsStorageManager storageManager, Boolean src, Map dest, CacheType cacheType) {
         Boolean cur = (Boolean) dest.get("res");
         if (cur == null)
             dest.put("res", src);
@@ -67,7 +68,7 @@ public class PDContainsAction<ItemType extends Serializable> implements PDAction
     }
 
     @Override
-    public boolean needMoreResults(Map currentResults) {
+    public boolean needMoreResults(PartitionableDataset pd, Map currentResults) {
         boolean containsItem = (boolean) currentResults.get("res");
         return !containsItem;
     }
